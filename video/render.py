@@ -105,9 +105,9 @@ SCENES = [
     dict(en='CHICKEN', ar='دجاج', items='مندي · شواية · مشوي على الفحم', price='$11.99', img='chicken', sats=['full_mandi', 'half_mandi']),
     dict(en='LAMB', ar='لحم', items='مندي · مظبي · محمّر', price='$24.99', img='lamb', sats=['mazbi', 'double_mandi']),
     dict(en='MIX PLATTERS', ar='مكس', items='دجاج ولحم في صحن واحد', price='$22.99', img='mix', sats=[]),
-    dict(en='FISH & SIDES', ar='سمك', items='سمك مقلي · سمك مشوي · ملوخية', price='$3.99', img='fish', sats=['molokhia', 'lamb_edam']),
+    dict(en='FISH & SIDES', ar='سمك', items='سمك مقلي · سمك مشوي مع الرز', price='$44.99', img='fish', sats=[]),
     dict(en='BROASTED', ar='بروستد', items='٤ · ٨ · ١٢ قطعة مع البطاطس', price='$16.99', img='broasted', sats=[]),
-    dict(en='BAKERY & DESSERT', ar='مخبوزات وحلا', items='مطبق · فطيرة · معصوب · عريكة', price='$5.99', img='mutabaq', sats=['massoub']),
+    dict(en='BAKERY & DESSERT', ar='مخبوزات وحلا', items='مطبق · فطيرة · معصوب · عريكة', price='$6.99', img='mutabaq', sats=['massoub']),
 ]
 for i, s in enumerate(SCENES):
     s['label'] = text_img(f'{i + 1:02d}  ·  {s["en"]}', F['label'], ORANGE)
@@ -204,8 +204,8 @@ if __name__ == '__main__':
             frame_at(float(ts)).save(f'/tmp/claude-0/-home-user-oncoal/fb0ac52a-6330-5bc9-a2c9-5c62305f79fc/scratchpad/f_{ts}.jpg', quality=85)
         raise SystemExit
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
-                           '-i', 'music.wav', '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
-                           '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', 'oncoal_promo.mp4'], stdin=subprocess.PIPE)
+                           '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
+                           '-movflags', '+faststart', 'oncoal_promo_nomusic.mp4'], stdin=subprocess.PIPE)
     for n in range(int(DUR * FPS)):
         ff.stdin.write(frame_at(n / FPS).tobytes())
         if n % 150 == 0: print(n, flush=True)
