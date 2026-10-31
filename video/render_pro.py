@@ -148,7 +148,7 @@ SCENES = [
          rows=[('Quarter Mix', '$22.99'), ('Single Mix', '$44.99'), ('Double Mix', '$67.99')], note='Served with rice & sauces'),
     dict(en='FISH', sub='FRIED  ·  ROASTED', ar='سمك', img='fish', desc='Whole fish, served with rice and sauces',
          rows=[('Fried Fish', '$44.99'), ('Roasted Fish', '$44.99'), ('Molokhia', '$10.99')], note=None),
-    dict(en='BROASTED', sub='CRISPY  ·  GOLDEN', ar='بروستد', img='broasted', desc='Crispy, golden, perfect for sharing',
+    dict(en='BROASTED', sub='CRISPY  ·  GOLDEN', ar='بروستد', img='broasted_stock', desc='Crispy, golden, perfect for sharing',
          rows=[('4 Pieces', '$16.99'), ('8 Pieces', '$29.99'), ('12 Pieces', '$42.99')], note='With fries, garlic sauce & buns'),
     dict(en='BAKERY & SWEETS', sub='MUTABAQ  ·  FATIRAH  ·  MASSOUB', ar='مخبوزات وحلا', img='mutabaq', desc='Fresh from our oven, sweet and savory',
          rows=[('Mutabaq Malah', '$6.99'), ('Fatirah Cheese & Honey', '$10.99'), ('Massoub', '$12.99')], note=None),
@@ -172,7 +172,7 @@ logo_ar = text_img('اونكول', font('Ruqaa', 170), ORANGE, rtl=True)
 logo_tag = text_img('YEMENI KITCHEN  ·  COOKED OVER COAL', mont(32, 'Bold'), GOLD, track=5)
 logo_script = text_img('Special & Delicious', font('Dancing', 76, 'Bold'), ORANGE)
 rule = Image.new('RGBA', (560, 3), GOLD + (230,))
-GRID = ['chicken', 'lamb', 'mix', 'broasted', 'fish', 'mutabaq', 'full_mandi', 'massoub', 'mazbi']
+GRID = ['chicken', 'lamb', 'mix', 'broasted_stock', 'fish', 'mutabaq', 'full_mandi', 'massoub', 'mazbi']
 grid_imgs = [dish(n, 280, 7) for n in GRID]
 grid_bg = backdrop('mix')
 g1 = text_img('SOMETHING FOR EVERYONE', bebas(110), CREAM, track=4)
@@ -313,7 +313,7 @@ if __name__ == '__main__':
             Image.fromarray(frame_at(float(ts))).save(f'/tmp/claude-0/-home-user-oncoal/fb0ac52a-6330-5bc9-a2c9-5c62305f79fc/scratchpad/p_{ts}.jpg', quality=88)
         raise SystemExit
     ff = subprocess.Popen(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-i', '-',
-                           '-c:v', 'libx264', '-preset', 'medium', '-crf', '17', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+                           '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-maxrate', '14M', '-bufsize', '28M', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
                            'oncoal_promo_v2_nomusic.mp4'], stdin=subprocess.PIPE)
     for n in range(int(DUR * FPS)):
         ff.stdin.write(frame_at(n / FPS, n).tobytes())
