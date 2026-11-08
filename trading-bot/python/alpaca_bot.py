@@ -231,6 +231,8 @@ def run_cycle(api: Alpaca, cfg: dict, state: dict):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--once", action="store_true", help="run one check and exit")
+    ap.add_argument("--check-markets", action="store_true",
+                    help="list which exchanges your Alpaca account can trade (e.g. to see if Saudi/Tadawul is there)")
     a = ap.parse_args()
 
     if not CONFIG_FILE.exists():
@@ -246,6 +248,19 @@ def main():
         time.sleep(10)
 
     api = Alpaca(cfg["key"], cfg["secret"], cfg["live"])
+    if a.check_markets:
+        assets = api._req("GET", f"{api.base}/v2/assets", params={"status": "active"})
+        by_ex: dict[str, int] = {}
+        for x in assets:
+            if x.get("tradable"):
+                by_ex[x.get("exchange", "?")] = by_ex.get(x.get("exchange", "?"), 0) + 1
+        print("Tradable assets on your account by exchange:")
+        for ex, n in sorted(by_ex.items(), key=lambda kv: -kv[1]):
+            print(f"  {ex:12s} {n}")
+        saudi = [x for x in assets if "TADAWUL" in str(x.get("exchange", "")).upper()
+                 or str(x.get("symbol", "")).startswith("2222")]
+        print("\nSaudi (Tadawul) stocks:", "YES — " + ", ".join(x["symbol"] for x in saudi[:10]) if saudi else "NOT available on this account")
+        return
     state = load_json(STATE_FILE, {})
     minutes = TF[cfg["timeframe"]][1]
     log(f"Bot started — {cfg['timeframe']} candles, {len(cfg['stocks'])} stocks, {len(cfg['crypto'])} crypto")
