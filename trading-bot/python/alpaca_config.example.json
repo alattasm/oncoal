@@ -1,0 +1,27 @@
+{
+  "key": "PASTE_YOUR_PAPER_KEY_HERE",
+  "secret": "PASTE_YOUR_PAPER_SECRET_HERE",
+  "live": false,
+  "timeframe": "1h",
+  "stocks": [
+    "AAPL",
+    "TSLA",
+    "NVDA",
+    "MSFT",
+    "AMZN",
+    "META",
+    "SHOP",
+    "RY"
+  ],
+  "crypto": [
+    "BTC/USD",
+    "ETH/USD",
+    "SOL/USD"
+  ],
+  "risk_percent": 1.0,
+  "max_position_percent": 20.0,
+  "max_open_positions": 5,
+  "max_drawdown_percent": 10.0,
+  "require_rsi_divergence": true,
+  "rr": 2.0
+}
