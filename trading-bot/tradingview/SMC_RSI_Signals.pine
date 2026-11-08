@@ -1,0 +1,200 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0
+// SMC + RSI Signals — same rules as the MT5 bot and the Python backtester.
+// Signals only: it tells you WHEN to buy / sell, you place the order with your broker.
+//
+// SELL rules (BUY = exact mirror):
+//  1) Liquidity sweep: wick above a swing high, close back below it
+//  2) CHoCH: close below the protected low (alert only)
+//  3) BOS: lower high, then close below the new low
+//  4) FVG left by the drop
+//  5) Price returns to the FVG, rejects it, closes below with a red candle = SIGNAL
+//  6) Stop above the sweep wick, target = R:R (default 1:2)
+//  7) Close above the FVG = idea cancelled
+//  RSI: above 70 alone is never a sell. Optional filter: divergence at the sweep.
+//@version=6
+indicator("SMC + RSI Signals", overlay = true, max_bars_back = 500, max_labels_count = 500, max_lines_count = 500)
+
+swingLen   = input.int(3, "Swing length (bars each side)", minval = 1)
+rsiLen     = input.int(14, "RSI period")
+reqDiv     = input.bool(true, "Require RSI divergence at the sweep (video 1)")
+reqBos     = input.bool(true, "Wait for BOS after CHoCH (video 2)")
+rr         = input.float(2.0, "Reward : Risk", step = 0.5)
+slBuf      = input.float(0.10, "Extra SL beyond sweep wick (x ATR)", step = 0.05)
+maxSetup   = input.int(60, "Setup expires after N bars")
+maxRiskAtr = input.float(6.0, "Skip if SL wider than N x ATR")
+atrLen     = input.int(14, "ATR period")
+showBuy    = input.bool(true, "Show BUY signals")
+showSell   = input.bool(true, "Show SELL signals")
+showLevels = input.bool(true, "Draw SL / TP lines")
+showTable  = input.bool(true, "Show setup status")
+
+r = ta.rsi(close, rsiLen)
+a = ta.atr(atrLen)
+
+// Runs the SELL state machine. BUY = call it with the chart mirrored upside-down.
+// Returns [signal, entry, stop, target, rsiDivergence, phase]
+smc(float o, float h, float l, float c, float rs, float at) =>
+    var array<int>   shI = array.new_int()
+    var array<float> shP = array.new_float()
+    var array<float> shR = array.new_float()
+    var array<int>   slI = array.new_int()
+    var array<float> slP = array.new_float()
+    var int   phase    = 0      // 0 waiting, 1 swept, 2 CHoCH, 3 find FVG, 4 armed
+    var int   start    = 0
+    var int   chochBar = 0
+    var int   bosBar   = 0
+    var int   armedBar = 0
+    var float sweepHi  = na
+    var float protLow  = na
+    var float fvgBot   = na
+    var float fvgTop   = na
+    var bool  rdiv     = false
+
+    k  = swingLen
+    t  = bar_index
+    hh = ta.highest(h, 2 * k + 1)
+    ll = ta.lowest(l, 2 * k + 1)
+
+    bool  sig = false
+    float e   = na
+    float s   = na
+    float tp  = na
+    bool  dv  = false
+
+    if t >= 2 * k
+        // confirm the swing that is k bars old (no look-ahead)
+        if h[k] == hh and h[k] > h[k + 1]
+            shI.push(t - k)
+            shP.push(h[k])
+            shR.push(rs[k])
+        if l[k] == ll and l[k] < l[k + 1]
+            slI.push(t - k)
+            slP.push(l[k])
+
+        if phase == 0
+            // 1) liquidity sweep of the latest unbroken swing high
+            if shI.size() > 0 and slI.size() > 0
+                sh = shP.last()
+                sr = shR.last()
+                if h > sh and c < sh
+                    d = rs < sr      // price higher high, RSI lower high
+                    shI.pop()
+                    shP.pop()
+                    shR.pop()
+                    if not (reqDiv and not d)
+                        phase   := 1
+                        start   := t
+                        sweepHi := h
+                        protLow := slP.last()
+                        rdiv    := d
+                else if c > sh
+                    shI.pop()
+                    shP.pop()
+                    shR.pop()
+        else
+            bool alive = true
+            if t - start > maxSetup or c > sweepHi
+                phase := 0
+                alive := false
+
+            if alive and phase == 1
+                sweepHi := math.max(sweepHi, h)
+                if c < protLow
+                    // 2) CHoCH
+                    phase    := 2
+                    chochBar := t
+                    if not reqBos
+                        phase  := 3
+                        bosBar := t
+                else
+                    alive := false
+
+            if alive and phase == 2 and t > chochBar
+                // 3) BOS: lower high after CHoCH, then close below the leg low
+                int lhI = -1
+                n = shI.size()
+                if n > 0
+                    for q = n - 1 to 0
+                        if shI.get(q) <= chochBar
+                            break
+                        if shP.get(q) < sweepHi
+                            lhI := shI.get(q)
+                            break
+                if lhI >= 0
+                    float ref = l[t - start]
+                    for m = start to lhI
+                        ref := math.min(ref, l[t - m])
+                    if c < ref
+                        phase  := 3
+                        bosBar := t
+
+            if alive and phase == 3
+                // 4) most recent bearish FVG in the impulsive leg
+                bool found = false
+                if bosBar >= start + 2
+                    for i = bosBar to start + 2
+                        if l[t - (i - 2)] > h[t - i]
+                            fvgBot := h[t - i]
+                            fvgTop := l[t - (i - 2)]
+                            found  := true
+                            break
+                if found
+                    phase    := 4
+                    armedBar := t
+                else
+                    phase := 0
+                alive := false
+
+            if alive and phase == 4 and t > armedBar
+                if c > fvgTop
+                    phase := 0     // 7) closed above the gap: cancelled
+                else if h >= fvgBot and c < fvgBot and c < o
+                    // 5) back into the gap, rejected, closed below it
+                    e := c
+                    s := sweepHi + slBuf * at
+                    risk = s - e
+                    phase := 0
+                    if risk > 0 and risk <= maxRiskAtr * at
+                        sig := true
+                        tp  := e - rr * risk
+                        dv  := rdiv
+    [sig, e, s, tp, dv, phase]
+
+[sSig, sE, sSL, sTP, sDiv, sPh] = smc(open, high, low, close, r, a)
+[bSig, bE, bSL, bTP, bDiv, bPh] = smc(-open, -low, -high, -close, 100 - r, a)
+
+sellSig = showSell and sSig
+buySig  = showBuy and bSig and not sellSig
+
+fmt(float x) => str.tostring(x, format.mintick)
+
+if sellSig
+    label.new(bar_index, high, "SELL\nEntry " + fmt(sE) + "\nSL " + fmt(sSL) + "\nTP " + fmt(sTP) + (sDiv ? "\nRSI div ✓" : ""),
+              style = label.style_label_down, color = color.new(color.red, 0), textcolor = color.white, size = size.small)
+    if showLevels
+        line.new(bar_index, sSL, bar_index + 20, sSL, color = color.red, style = line.style_dashed)
+        line.new(bar_index, sTP, bar_index + 20, sTP, color = color.green, style = line.style_dashed)
+    alert("SELL " + syminfo.ticker + " | Entry " + fmt(sE) + " | SL " + fmt(sSL) + " | TP " + fmt(sTP), alert.freq_once_per_bar_close)
+
+if buySig
+    label.new(bar_index, low, "BUY\nEntry " + fmt(-bE) + "\nSL " + fmt(-bSL) + "\nTP " + fmt(-bTP) + (bDiv ? "\nRSI div ✓" : ""),
+              style = label.style_label_up, color = color.new(color.green, 0), textcolor = color.white, size = size.small)
+    if showLevels
+        line.new(bar_index, -bSL, bar_index + 20, -bSL, color = color.red, style = line.style_dashed)
+        line.new(bar_index, -bTP, bar_index + 20, -bTP, color = color.green, style = line.style_dashed)
+    alert("BUY " + syminfo.ticker + " | Entry " + fmt(-bE) + " | SL " + fmt(-bSL) + " | TP " + fmt(-bTP), alert.freq_once_per_bar_close)
+
+alertcondition(buySig,  "BUY signal",  "SMC BUY on {{ticker}} at {{close}}")
+alertcondition(sellSig, "SELL signal", "SMC SELL on {{ticker}} at {{close}}")
+
+phaseText(int p) =>
+    p == 0 ? "Waiting for liquidity sweep" : p == 1 ? "Sweep done → waiting CHoCH" : p == 2 ? "CHoCH → waiting BOS" : p == 3 ? "BOS → finding FVG" : "Waiting retrace into FVG"
+
+var table tb = table.new(position.top_right, 2, 3, bgcolor = color.new(color.black, 20), border_width = 1)
+if showTable and barstate.islast
+    table.cell(tb, 0, 0, "SMC + RSI", text_color = color.yellow)
+    table.cell(tb, 1, 0, timeframe.period, text_color = color.yellow)
+    table.cell(tb, 0, 1, "BUY setup",  text_color = color.lime)
+    table.cell(tb, 1, 1, phaseText(bPh), text_color = color.white)
+    table.cell(tb, 0, 2, "SELL setup", text_color = color.red)
+    table.cell(tb, 1, 2, phaseText(sPh), text_color = color.white)
