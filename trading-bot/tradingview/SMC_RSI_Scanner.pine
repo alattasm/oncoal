@@ -187,7 +187,8 @@ string msgs = ""
 // handles one symbol: updates the table and collects alert text
 check(int row, string sym, bool bS, float bE, float bSL, float bTP, bool sS, float sE, float sSL, float sTP, int bP, int sP) =>
     string m = ""
-    name = str.replace(sym, "TADAWUL:", "")
+    parts = str.split(sym, ":")
+    name = parts.size() > 1 ? parts.get(1) : sym
     if bS
         lastSig.set(row, "BUY " + fmt(bE))
         if alertBuy
