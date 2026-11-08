@@ -9,6 +9,9 @@ Setup:
      python alpaca_bot.py --once     (one check, then exit — good for testing)
 
 Rules:
+  - Saudi stocks (Tadawul codes like "2222"): used only if your Alpaca account can trade them —
+    the bot looks them up at start (python alpaca_bot.py --check-markets shows what you have).
+    Buy only, SL/TP watched by the bot, Sunday-Thursday 10:00-15:00 Riyadh time.
   - Stocks: bracket order (entry + stop loss + take profit sent together). Buys and short sells.
   - Crypto: buy only (Alpaca can't short crypto). Stop loss / take profit watched by the bot.
   - One position per symbol, risk % of equity per trade, emergency stop on max drawdown.
@@ -44,6 +47,7 @@ DEFAULT_CONFIG = {
     "timeframe": "1h",
     "stocks": ["AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "META", "SHOP", "RY"],
     "crypto": ["BTC/USD", "ETH/USD", "SOL/USD"],
+    "saudi": ["2222", "1120", "1150", "1180", "2010", "7010", "1211", "2082", "1010", "2280"],
     "risk_percent": 1.0,
     "max_position_percent": 20.0,
     "max_open_positions": 5,
@@ -132,6 +136,47 @@ def load_json(path: Path, default):
         return default
 
 
+SAR_PER_USD = 3.75   # the riyal is pegged to the dollar
+
+
+def saudi_market_open() -> bool:
+    """Tadawul: Sunday-Thursday, 10:00-15:00 Riyadh time (UTC+3)."""
+    now = datetime.now(timezone.utc) + timedelta(hours=3)
+    return now.weekday() in (6, 0, 1, 2, 3) and 10 <= now.hour + now.minute / 60 < 15
+
+
+def find_saudi_assets(api: Alpaca, codes: list[str]) -> dict[str, str]:
+    """Map Tadawul codes (e.g. "2222") to the symbol Alpaca uses for them on this account."""
+    try:
+        assets = api._req("GET", f"{api.base}/v2/assets", params={"status": "active"})
+    except Exception as e:  # noqa: BLE001
+        log(f"could not list assets: {e}")
+        return {}
+    found = {}
+    for code in codes:
+        for x in assets:
+            sym, ex = str(x.get("symbol", "")), str(x.get("exchange", "")).upper()
+            if not x.get("tradable"):
+                continue
+            if sym == code or sym.split(".")[0] == code and ("TADAWUL" in ex or "SA" in ex or sym != code):
+                found[code] = sym
+                break
+    return found
+
+
+def get_bars(api: Alpaca, sym: str, kind: str, tf: str, n: int = 500) -> pd.DataFrame:
+    if kind != "saudi":
+        return api.bars(sym, tf, n)
+    # Saudi candles from Yahoo (2222.SR); orders still go through Alpaca
+    from data import yahoo
+    yf_tf = {"15m": "15m", "1h": "1h", "4h": "1h", "1d": "1d"}[tf]
+    df = yahoo(f"{sym}.SR", yf_tf, "730d" if yf_tf != "15m" else "60d")
+    minutes = TF[tf][1]
+    if len(df) and df.index[-1] + timedelta(minutes=minutes) > datetime.now(timezone.utc):
+        df = df.iloc[:-1]
+    return df.tail(n)
+
+
 def run_cycle(api: Alpaca, cfg: dict, state: dict):
     acct = api.account()
     equity = float(acct["equity"])
@@ -146,34 +191,54 @@ def run_cycle(api: Alpaca, cfg: dict, state: dict):
 
     positions = api.positions()
     p = Params(require_rsi_div=cfg["require_rsi_divergence"], rr=cfg["rr"])
-    market_open = api.clock().get("is_open", False)
-    managed = state.setdefault("crypto_exits", {})
+    us_open = api.clock().get("is_open", False)
+    managed = state.setdefault("crypto_exits", {})   # positions whose SL/TP the bot watches
 
-    # --- crypto exits are watched by the bot (Alpaca has no bracket orders for crypto) ---
-    for sym, ex in list(managed.items()):
-        if sym.replace("/", "") not in positions:
-            managed.pop(sym)
+    # Saudi symbols: look up how Alpaca names them (once per run)
+    if cfg.get("saudi") and "saudi_map" not in state:
+        state["saudi_map"] = find_saudi_assets(api, cfg["saudi"])
+        missing = [c for c in cfg["saudi"] if c not in state["saudi_map"]]
+        if state["saudi_map"]:
+            log(f"Saudi stocks tradable on this account: {state['saudi_map']}")
+        if missing:
+            log(f"Saudi codes NOT found on this account (skipped): {', '.join(missing)}")
+    saudi_map = state.get("saudi_map", {})
+
+    # --- exits watched by the bot (crypto + Saudi: no bracket orders) ---
+    for key, ex in list(managed.items()):
+        order_sym = ex.get("order_sym", key)
+        if order_sym.replace("/", "") not in positions:
+            managed.pop(key)
             continue
-        df = api.bars(sym, "15m", 3)
+        kind = ex.get("kind", "crypto")
+        try:
+            df = get_bars(api, key, kind, "15m" if kind == "crypto" else "1h", 3)
+        except Exception as e:  # noqa: BLE001
+            log(f"{key}: price check failed {e}")
+            continue
         if df.empty:
             continue
         price = df["close"].iloc[-1]
+        if kind == "saudi" and not saudi_market_open():
+            continue
         if price <= ex["sl"] or price >= ex["tp"]:
-            log(f"{sym}: {'STOP LOSS' if price <= ex['sl'] else 'TAKE PROFIT'} hit at {price:.2f} — closing")
-            api.close_position(sym)
-            managed.pop(sym)
+            log(f"{key}: {'STOP LOSS' if price <= ex['sl'] else 'TAKE PROFIT'} hit at {price:.2f} — closing")
+            api.close_position(order_sym)
+            managed.pop(key)
 
-    symbols = [(s, False) for s in cfg["stocks"]] + [(s, True) for s in cfg["crypto"]]
-    for sym, crypto in symbols:
+    symbols = ([(s, s, "stock") for s in cfg["stocks"]]
+               + [(s, s, "crypto") for s in cfg["crypto"]]
+               + [(code, saudi_map[code], "saudi") for code in cfg.get("saudi", []) if code in saudi_map])
+    for sym, order_sym, kind in symbols:
         try:
-            df = api.bars(sym, cfg["timeframe"])
+            df = get_bars(api, sym, kind, cfg["timeframe"])
         except Exception as e:  # noqa: BLE001
             log(f"{sym}: data error {e}")
             continue
         if len(df) < 100:
             log(f"{sym}: not enough data ({len(df)} candles)")
             continue
-        sigs = [s for s in generate_signals(df, p) if s.bar == len(df) - 1]
+        sigs = [x for x in generate_signals(df, p) if x.bar == len(df) - 1]
         if not sigs:
             continue
         s = sigs[-1]
@@ -184,45 +249,51 @@ def run_cycle(api: Alpaca, cfg: dict, state: dict):
         log(f"{sym}: SIGNAL {s.side.upper()} entry {s.entry:.4f} SL {s.sl:.4f} TP {s.tp:.4f} "
             f"(RSI div: {'yes' if s.info['rsi_div'] else 'no'})")
 
-        if sym.replace("/", "") in positions:
+        if order_sym.replace("/", "") in positions:
             log(f"{sym}: already have a position — skipped")
             continue
         if len(positions) >= cfg["max_open_positions"]:
             log(f"{sym}: max open positions reached — skipped")
             continue
-        if crypto and s.side == "sell":
-            log(f"{sym}: crypto can't be shorted on Alpaca — skipped")
+        if kind in ("crypto", "saudi") and s.side == "sell":
+            log(f"{sym}: short selling not available for {kind} — skipped")
             continue
-        if not crypto and not market_open:
-            log(f"{sym}: stock market closed — skipped")
+        if kind == "stock" and not us_open:
+            log(f"{sym}: US market closed — skipped")
+            continue
+        if kind == "saudi" and not saudi_market_open():
+            log(f"{sym}: Saudi market closed — skipped")
             continue
 
+        # Saudi prices are in riyals, account equity in dollars
+        eq_local = equity * SAR_PER_USD if kind == "saudi" else equity
         risk_per_unit = abs(s.entry - s.sl)
-        qty = equity * cfg["risk_percent"] / 100 / risk_per_unit
-        qty = min(qty, equity * cfg["max_position_percent"] / 100 / s.entry)
-        if crypto:
+        qty = eq_local * cfg["risk_percent"] / 100 / risk_per_unit
+        qty = min(qty, eq_local * cfg["max_position_percent"] / 100 / s.entry)
+        if kind == "crypto":
             qty = math.floor(qty * 1e6) / 1e6
-            notional_ok = qty * s.entry >= 1
+            size_ok = qty * s.entry >= 1
         else:
-            qty = math.floor(qty)               # bracket orders need whole shares
-            notional_ok = qty >= 1
-        if not notional_ok:
+            qty = math.floor(qty)               # whole shares
+            size_ok = qty >= 1
+        if not size_ok:
             log(f"{sym}: position size too small — skipped")
             continue
 
         side = "buy" if s.side == "buy" else "sell"
         try:
-            if crypto:
-                api.order({"symbol": sym, "qty": str(qty), "side": side, "type": "market", "time_in_force": "gtc"})
-                managed[sym] = {"sl": s.sl, "tp": s.tp}
-            else:
+            if kind == "stock":
                 api.order({
-                    "symbol": sym, "qty": str(qty), "side": side, "type": "market", "time_in_force": "gtc",
+                    "symbol": order_sym, "qty": str(qty), "side": side, "type": "market", "time_in_force": "gtc",
                     "order_class": "bracket",
                     "take_profit": {"limit_price": f"{s.tp:.2f}"},
                     "stop_loss": {"stop_price": f"{s.sl:.2f}"},
                 })
-            positions[sym.replace("/", "")] = {"symbol": sym}
+            else:
+                api.order({"symbol": order_sym, "qty": str(qty), "side": side, "type": "market",
+                           "time_in_force": "gtc" if kind == "crypto" else "day"})
+                managed[sym] = {"sl": float(s.sl), "tp": float(s.tp), "kind": kind, "order_sym": order_sym}
+            positions[order_sym.replace("/", "")] = {"symbol": order_sym}
             log(f"{sym}: ORDER SENT {side.upper()} {qty}")
         except Exception as e:  # noqa: BLE001
             log(f"{sym}: order failed — {e}")
@@ -262,8 +333,10 @@ def main():
         print("\nSaudi (Tadawul) stocks:", "YES — " + ", ".join(x["symbol"] for x in saudi[:10]) if saudi else "NOT available on this account")
         return
     state = load_json(STATE_FILE, {})
+    state.pop("saudi_map", None)   # re-check which Saudi stocks are tradable every start
     minutes = TF[cfg["timeframe"]][1]
-    log(f"Bot started — {cfg['timeframe']} candles, {len(cfg['stocks'])} stocks, {len(cfg['crypto'])} crypto")
+    log(f"Bot started — {cfg['timeframe']} candles, {len(cfg['stocks'])} US stocks, "
+        f"{len(cfg.get('saudi', []))} Saudi, {len(cfg['crypto'])} crypto")
 
     while True:
         if state.get("halted"):

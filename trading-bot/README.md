@@ -93,7 +93,9 @@ python scan.py --yahoo 2222.SR 1120.SR 7010.SR --kraken XBTUSD ETHUSD --tf 1d
 
 ## ٤) بوت Alpaca (تداول تجريبي تلقائي — أسهم أمريكية + كريبتو)
 
-Alpaca يعطيك حساب **Paper Trading** مجاني بدون هوية. (ما فيه أسهم سعودية — بس فيه صندوق `KSA` اللي يتبع السوق السعودي.)
+Alpaca يعطيك حساب **Paper Trading** مجاني بدون هوية.
+
+**الأسهم السعودية:** البوت يدوّر عليها تلقائياً في حسابك أول ما يشتغل. شغّل `python alpaca_bot.py --check-markets` وبيقول لك إذا حسابك يقدر يتداول أسهم تداول. إذا موجودة، يشتريها البوت (شراء فقط، الأحد–الخميس ١٠–٣ بتوقيت الرياض) ويراقب الستوب والهدف بنفسه. القائمة في `"saudi"` داخل `alpaca_config.json`.
 
 1. سجّل في **alpaca.markets** ← بدّل لـ **Paper Trading** ← **API Keys** ← **Generate**.
 2. انسخ `python/alpaca_config.example.json` باسم `python/alpaca_config.json` وحط المفاتيح فيه (لا ترسلها لأحد).
