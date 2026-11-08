@@ -1,0 +1,246 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0
+// SMC + RSI Scanner — watches up to 15 stocks with ONE alert.
+// Same rules as SMC_RSI_Signals.pine / the MT5 bot / the Python backtester.
+// Signals only: you place the order with your broker (Sahm, Alinma, ...).
+//
+// Use: put it on any chart, set the chart timeframe (1D recommended for Saudi stocks),
+// edit the symbol list in the settings, then create ONE alert:
+//   Condition: SMC + RSI Scanner -> "Any alert() function call"
+//@version=6
+indicator("SMC + RSI Scanner", overlay = true, max_bars_back = 500)
+
+swingLen   = input.int(3, "Swing length (bars each side)", minval = 1, group = "Strategy")
+rsiLen     = input.int(14, "RSI period", group = "Strategy")
+reqDiv     = input.bool(true, "Require RSI divergence at the sweep (video 1)", group = "Strategy")
+reqBos     = input.bool(true, "Wait for BOS after CHoCH (video 2)", group = "Strategy")
+rr         = input.float(2.0, "Reward : Risk", step = 0.5, group = "Strategy")
+slBuf      = input.float(0.10, "Extra SL beyond sweep wick (x ATR)", step = 0.05, group = "Strategy")
+maxSetup   = input.int(60, "Setup expires after N bars", group = "Strategy")
+maxRiskAtr = input.float(6.0, "Skip if SL wider than N x ATR", group = "Strategy")
+atrLen     = input.int(14, "ATR period", group = "Strategy")
+alertBuy   = input.bool(true, "Alert on BUY", group = "Alerts")
+alertSell  = input.bool(true, "Alert on SELL (exit if you hold the stock)", group = "Alerts")
+
+sym01 = input.symbol("TADAWUL:2222", "Stock 1", group = "Watchlist")  // Aramco
+sym02 = input.symbol("TADAWUL:1120", "Stock 2", group = "Watchlist")  // Al Rajhi
+sym03 = input.symbol("TADAWUL:1150", "Stock 3", group = "Watchlist")  // Alinma
+sym04 = input.symbol("TADAWUL:1180", "Stock 4", group = "Watchlist")  // SNB
+sym05 = input.symbol("TADAWUL:2010", "Stock 5", group = "Watchlist")  // SABIC
+sym06 = input.symbol("TADAWUL:7010", "Stock 6", group = "Watchlist")  // STC
+sym07 = input.symbol("TADAWUL:1211", "Stock 7", group = "Watchlist")  // Maaden
+sym08 = input.symbol("TADAWUL:2082", "Stock 8", group = "Watchlist")  // ACWA Power
+sym09 = input.symbol("TADAWUL:1010", "Stock 9", group = "Watchlist")  // Riyad Bank
+sym10 = input.symbol("TADAWUL:2280", "Stock 10", group = "Watchlist")  // Almarai
+sym11 = input.symbol("TADAWUL:4190", "Stock 11", group = "Watchlist")  // Jarir
+sym12 = input.symbol("TADAWUL:1060", "Stock 12", group = "Watchlist")  // SAB
+sym13 = input.symbol("TADAWUL:2020", "Stock 13", group = "Watchlist")  // SABIC AN
+sym14 = input.symbol("TADAWUL:4013", "Stock 14", group = "Watchlist")  // Sulaiman Al Habib
+sym15 = input.symbol("TADAWUL:5110", "Stock 15", group = "Watchlist")  // Saudi Electricity
+
+// Runs the SELL state machine. BUY = call it with the chart mirrored upside-down.
+// Returns [signal, entry, stop, target, rsiDivergence, phase]
+smc(float o, float h, float l, float c, float rs, float at) =>
+    var array<int>   shI = array.new_int()
+    var array<float> shP = array.new_float()
+    var array<float> shR = array.new_float()
+    var array<int>   slI = array.new_int()
+    var array<float> slP = array.new_float()
+    var int   phase    = 0      // 0 waiting, 1 swept, 2 CHoCH, 3 find FVG, 4 armed
+    var int   start    = 0
+    var int   chochBar = 0
+    var int   bosBar   = 0
+    var int   armedBar = 0
+    var float sweepHi  = na
+    var float protLow  = na
+    var float fvgBot   = na
+    var float fvgTop   = na
+    var bool  rdiv     = false
+
+    k  = swingLen
+    t  = bar_index
+    hh = ta.highest(h, 2 * k + 1)
+    ll = ta.lowest(l, 2 * k + 1)
+
+    bool  sig = false
+    float e   = na
+    float s   = na
+    float tp  = na
+    bool  dv  = false
+
+    if t >= 2 * k
+        // confirm the swing that is k bars old (no look-ahead)
+        if h[k] == hh and h[k] > h[k + 1]
+            shI.push(t - k)
+            shP.push(h[k])
+            shR.push(rs[k])
+        if l[k] == ll and l[k] < l[k + 1]
+            slI.push(t - k)
+            slP.push(l[k])
+
+        if phase == 0
+            // 1) liquidity sweep of the latest unbroken swing high
+            if shI.size() > 0 and slI.size() > 0
+                sh = shP.last()
+                sr = shR.last()
+                if h > sh and c < sh
+                    d = rs < sr      // price higher high, RSI lower high
+                    shI.pop()
+                    shP.pop()
+                    shR.pop()
+                    if not (reqDiv and not d)
+                        phase   := 1
+                        start   := t
+                        sweepHi := h
+                        protLow := slP.last()
+                        rdiv    := d
+                else if c > sh
+                    shI.pop()
+                    shP.pop()
+                    shR.pop()
+        else
+            bool alive = true
+            if t - start > maxSetup or c > sweepHi
+                phase := 0
+                alive := false
+
+            if alive and phase == 1
+                sweepHi := math.max(sweepHi, h)
+                if c < protLow
+                    // 2) CHoCH
+                    phase    := 2
+                    chochBar := t
+                    if not reqBos
+                        phase  := 3
+                        bosBar := t
+                else
+                    alive := false
+
+            if alive and phase == 2 and t > chochBar
+                // 3) BOS: lower high after CHoCH, then close below the leg low
+                int lhI = -1
+                n = shI.size()
+                if n > 0
+                    for q = n - 1 to 0
+                        if shI.get(q) <= chochBar
+                            break
+                        if shP.get(q) < sweepHi
+                            lhI := shI.get(q)
+                            break
+                if lhI >= 0
+                    float ref = l[t - start]
+                    for m = start to lhI
+                        ref := math.min(ref, l[t - m])
+                    if c < ref
+                        phase  := 3
+                        bosBar := t
+
+            if alive and phase == 3
+                // 4) most recent bearish FVG in the impulsive leg
+                bool found = false
+                if bosBar >= start + 2
+                    for i = bosBar to start + 2
+                        if l[t - (i - 2)] > h[t - i]
+                            fvgBot := h[t - i]
+                            fvgTop := l[t - (i - 2)]
+                            found  := true
+                            break
+                if found
+                    phase    := 4
+                    armedBar := t
+                else
+                    phase := 0
+                alive := false
+
+            if alive and phase == 4 and t > armedBar
+                if c > fvgTop
+                    phase := 0     // 7) closed above the gap: cancelled
+                else if h >= fvgBot and c < fvgBot and c < o
+                    // 5) back into the gap, rejected, closed below it
+                    e := c
+                    s := sweepHi + slBuf * at
+                    risk = s - e
+                    phase := 0
+                    if risk > 0 and risk <= maxRiskAtr * at
+                        sig := true
+                        tp  := e - rr * risk
+                        dv  := rdiv
+    [sig, e, s, tp, dv, phase]
+
+// Runs both directions on the requested symbol.
+// Returns [buySig, buyEntry, buySL, buyTP, sellSig, sellEntry, sellSL, sellTP, buyPhase, sellPhase]
+scan() =>
+    r = ta.rsi(close, rsiLen)
+    a = ta.atr(atrLen)
+    [sSig, sE, sSL, sTP, sDiv, sPh] = smc(open, high, low, close, r, a)
+    [bSig, bE, bSL, bTP, bDiv, bPh] = smc(-open, -low, -high, -close, 100 - r, a)
+    [bSig, -bE, -bSL, -bTP, sSig, sE, sSL, sTP, bPh, sPh]
+
+phaseText(int p) =>
+    p == 0 ? "waiting" : p == 1 ? "sweep" : p == 2 ? "CHoCH" : p == 3 ? "BOS" : "FVG retrace"
+
+fmt(float x) => str.tostring(x, "#.##")
+
+var table tb = table.new(position.top_right, 4, 16, bgcolor = color.new(color.black, 15), border_width = 1)
+var array<string> lastSig = array.new_string(15, "-")
+string msgs = ""
+
+// handles one symbol: updates the table and collects alert text
+check(int row, string sym, bool bS, float bE, float bSL, float bTP, bool sS, float sE, float sSL, float sTP, int bP, int sP) =>
+    string m = ""
+    name = str.replace(sym, "TADAWUL:", "")
+    if bS
+        lastSig.set(row, "BUY " + fmt(bE))
+        if alertBuy
+            m := "BUY " + name + " | Entry " + fmt(bE) + " | SL " + fmt(bSL) + " | TP " + fmt(bTP) + "\n"
+    if sS
+        lastSig.set(row, "SELL " + fmt(sE))
+        if alertSell
+            m := m + "SELL " + name + " | Entry " + fmt(sE) + " | SL " + fmt(sSL) + " | TP " + fmt(sTP) + "\n"
+    if barstate.islast
+        table.cell(tb, 0, row + 1, name, text_color = color.white, text_size = size.small)
+        table.cell(tb, 1, row + 1, bS ? "BUY NOW" : phaseText(bP), text_color = bS ? color.lime : color.silver, text_size = size.small)
+        table.cell(tb, 2, row + 1, sS ? "SELL NOW" : phaseText(sP), text_color = sS ? color.red : color.silver, text_size = size.small)
+        last = lastSig.get(row)
+        table.cell(tb, 3, row + 1, last, text_size = size.small,
+                   text_color = str.startswith(last, "BUY") ? color.lime : str.startswith(last, "SELL") ? color.red : color.gray)
+    m
+
+if barstate.islast
+    table.cell(tb, 0, 0, "Stock", text_color = color.yellow, text_size = size.small)
+    table.cell(tb, 1, 0, "BUY setup", text_color = color.yellow, text_size = size.small)
+    table.cell(tb, 2, 0, "SELL setup", text_color = color.yellow, text_size = size.small)
+    table.cell(tb, 3, 0, "Last signal", text_color = color.yellow, text_size = size.small)
+
+[b01, be01, bsl01, btp01, s01, se01, ssl01, stp01, bp01, sp01] = request.security(sym01, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(0, sym01, b01, be01, bsl01, btp01, s01, se01, ssl01, stp01, bp01, sp01)
+[b02, be02, bsl02, btp02, s02, se02, ssl02, stp02, bp02, sp02] = request.security(sym02, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(1, sym02, b02, be02, bsl02, btp02, s02, se02, ssl02, stp02, bp02, sp02)
+[b03, be03, bsl03, btp03, s03, se03, ssl03, stp03, bp03, sp03] = request.security(sym03, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(2, sym03, b03, be03, bsl03, btp03, s03, se03, ssl03, stp03, bp03, sp03)
+[b04, be04, bsl04, btp04, s04, se04, ssl04, stp04, bp04, sp04] = request.security(sym04, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(3, sym04, b04, be04, bsl04, btp04, s04, se04, ssl04, stp04, bp04, sp04)
+[b05, be05, bsl05, btp05, s05, se05, ssl05, stp05, bp05, sp05] = request.security(sym05, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(4, sym05, b05, be05, bsl05, btp05, s05, se05, ssl05, stp05, bp05, sp05)
+[b06, be06, bsl06, btp06, s06, se06, ssl06, stp06, bp06, sp06] = request.security(sym06, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(5, sym06, b06, be06, bsl06, btp06, s06, se06, ssl06, stp06, bp06, sp06)
+[b07, be07, bsl07, btp07, s07, se07, ssl07, stp07, bp07, sp07] = request.security(sym07, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(6, sym07, b07, be07, bsl07, btp07, s07, se07, ssl07, stp07, bp07, sp07)
+[b08, be08, bsl08, btp08, s08, se08, ssl08, stp08, bp08, sp08] = request.security(sym08, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(7, sym08, b08, be08, bsl08, btp08, s08, se08, ssl08, stp08, bp08, sp08)
+[b09, be09, bsl09, btp09, s09, se09, ssl09, stp09, bp09, sp09] = request.security(sym09, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(8, sym09, b09, be09, bsl09, btp09, s09, se09, ssl09, stp09, bp09, sp09)
+[b10, be10, bsl10, btp10, s10, se10, ssl10, stp10, bp10, sp10] = request.security(sym10, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(9, sym10, b10, be10, bsl10, btp10, s10, se10, ssl10, stp10, bp10, sp10)
+[b11, be11, bsl11, btp11, s11, se11, ssl11, stp11, bp11, sp11] = request.security(sym11, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(10, sym11, b11, be11, bsl11, btp11, s11, se11, ssl11, stp11, bp11, sp11)
+[b12, be12, bsl12, btp12, s12, se12, ssl12, stp12, bp12, sp12] = request.security(sym12, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(11, sym12, b12, be12, bsl12, btp12, s12, se12, ssl12, stp12, bp12, sp12)
+[b13, be13, bsl13, btp13, s13, se13, ssl13, stp13, bp13, sp13] = request.security(sym13, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(12, sym13, b13, be13, bsl13, btp13, s13, se13, ssl13, stp13, bp13, sp13)
+[b14, be14, bsl14, btp14, s14, se14, ssl14, stp14, bp14, sp14] = request.security(sym14, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(13, sym14, b14, be14, bsl14, btp14, s14, se14, ssl14, stp14, bp14, sp14)
+[b15, be15, bsl15, btp15, s15, se15, ssl15, stp15, bp15, sp15] = request.security(sym15, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
+msgs += check(14, sym15, b15, be15, bsl15, btp15, s15, se15, ssl15, stp15, bp15, sp15)
+
+if str.length(msgs) > 0
+    alert("SMC + RSI (" + timeframe.period + ")\n" + msgs, alert.freq_once_per_bar_close)
