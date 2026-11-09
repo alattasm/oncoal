@@ -14,6 +14,10 @@ indicator("SMC + RSI Scanner", overlay = true, max_bars_back = 500, calc_bars_co
 preset     = input.string("Saudi (Sahm)", "Market list", options = ["Saudi (Sahm)", "US (Sahm)", "Custom"])
 showAll    = input.bool(false, "Show all stocks in the table (off = only active setups / recent signals)")
 recentBars = input.int(10, "Count a signal as recent for N bars")
+tblSizeIn  = input.string("Large", "Table size", options = ["Small", "Normal", "Large", "Huge"])
+tblPosIn   = input.string("Top right", "Table position", options = ["Top right", "Top left", "Bottom right", "Bottom left", "Middle right"])
+tblSize    = tblSizeIn == "Small" ? size.small : tblSizeIn == "Normal" ? size.normal : tblSizeIn == "Large" ? size.large : size.huge
+tblPos     = tblPosIn == "Top left" ? position.top_left : tblPosIn == "Bottom right" ? position.bottom_right : tblPosIn == "Bottom left" ? position.bottom_left : tblPosIn == "Middle right" ? position.middle_right : position.top_right
 swingLen   = input.int(3, "Swing length (bars each side)", minval = 1, group = "Strategy")
 rsiLen     = input.int(14, "RSI period", group = "Strategy")
 reqDiv     = input.bool(true, "Require RSI divergence at the sweep (video 1)", group = "Strategy")
@@ -253,7 +257,7 @@ shortName(string sym) =>
     parts = str.split(sym, ":")
     parts.size() > 1 ? parts.get(1) : sym
 
-var table tb = table.new(position.top_right, 4, 41, bgcolor = color.new(color.black, 15), border_width = 1)
+var table tb = table.new(tblPos, 4, 41, bgcolor = color.new(color.black, 15), border_width = 1)
 var array<string> lastTxt = array.new_string(40, "-")
 var array<int>    lastBar = array.new_int(40, na)
 var array<string> rName = array.new_string()
@@ -425,21 +429,21 @@ msgs += check(39, sym40, u40, b40, be40, bsl40, btp40, s40, se40, ssl40, stp40, 
 
 if barstate.islast
     table.clear(tb, 0, 0, 3, 40)
-    table.cell(tb, 0, 0, preset, text_color = color.yellow, text_size = size.small)
-    table.cell(tb, 1, 0, "BUY setup", text_color = color.yellow, text_size = size.small)
-    table.cell(tb, 2, 0, "SELL setup", text_color = color.yellow, text_size = size.small)
-    table.cell(tb, 3, 0, "Last signal", text_color = color.yellow, text_size = size.small)
+    table.cell(tb, 0, 0, preset, text_color = color.yellow, text_size = tblSize)
+    table.cell(tb, 1, 0, "BUY setup", text_color = color.yellow, text_size = tblSize)
+    table.cell(tb, 2, 0, "SELL setup", text_color = color.yellow, text_size = tblSize)
+    table.cell(tb, 3, 0, "Last signal", text_color = color.yellow, text_size = tblSize)
     n = rName.size()
     if n == 0
-        table.cell(tb, 0, 1, "No active setups right now", text_color = color.silver, text_size = size.small)
+        table.cell(tb, 0, 1, "No active setups right now", text_color = color.silver, text_size = tblSize)
     else
         for k = 0 to n - 1
             bt = rBuy.get(k)
             st = rSell.get(k)
-            table.cell(tb, 0, k + 1, rName.get(k), text_color = color.white, text_size = size.small)
-            table.cell(tb, 1, k + 1, bt, text_color = bt == "BUY NOW" ? color.lime : color.silver, text_size = size.small)
-            table.cell(tb, 2, k + 1, st, text_color = st == "SELL NOW" ? color.red : color.silver, text_size = size.small)
-            table.cell(tb, 3, k + 1, rLast.get(k), text_color = rCol.get(k), text_size = size.small)
+            table.cell(tb, 0, k + 1, rName.get(k), text_color = color.white, text_size = tblSize)
+            table.cell(tb, 1, k + 1, bt, text_color = bt == "BUY NOW" ? color.lime : color.silver, text_size = tblSize)
+            table.cell(tb, 2, k + 1, st, text_color = st == "SELL NOW" ? color.red : color.silver, text_size = tblSize)
+            table.cell(tb, 3, k + 1, rLast.get(k), text_color = rCol.get(k), text_size = tblSize)
 
 if str.length(msgs) > 0
     alert("SMC + RSI " + preset + " (" + timeframe.period + ")\n" + msgs, alert.freq_once_per_bar_close)
