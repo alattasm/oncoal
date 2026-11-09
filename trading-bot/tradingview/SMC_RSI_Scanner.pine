@@ -1,14 +1,19 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0
-// SMC + RSI Scanner — watches up to 15 stocks with ONE alert.
+// SMC + RSI Scanner — watches up to 40 stocks with ONE alert.
+// Lists: "Saudi (Sahm)" = 40 most-traded Tadawul stocks, "US (Sahm)" = 40 popular US stocks/ETFs,
+//        "Custom" = your own 40 (Settings -> Custom list).
+// Tip: one alert per list. Saudi list -> create the alert on a Saudi chart (e.g. TADAWUL:2222);
+//      then switch Market list to US, open a US chart (e.g. NASDAQ:AAPL) and create a second alert.
 // Same rules as SMC_RSI_Signals.pine / the MT5 bot / the Python backtester.
 // Signals only: you place the order with your broker (Sahm, Alinma, ...).
 //
-// Use: put it on any chart, set the chart timeframe (1D recommended for Saudi stocks),
-// edit the symbol list in the settings, then create ONE alert:
-//   Condition: SMC + RSI Scanner -> "Any alert() function call"
+// Alert: Condition = SMC + RSI Scanner -> "Any alert() function call", Interval = 1 day.
 //@version=6
-indicator("SMC + RSI Scanner", overlay = true, max_bars_back = 500)
+indicator("SMC + RSI Scanner", overlay = true, max_bars_back = 500, calc_bars_count = 1500)
 
+preset     = input.string("Saudi (Sahm)", "Market list", options = ["Saudi (Sahm)", "US (Sahm)", "Custom"])
+showAll    = input.bool(false, "Show all stocks in the table (off = only active setups / recent signals)")
+recentBars = input.int(10, "Count a signal as recent for N bars")
 swingLen   = input.int(3, "Swing length (bars each side)", minval = 1, group = "Strategy")
 rsiLen     = input.int(14, "RSI period", group = "Strategy")
 reqDiv     = input.bool(true, "Require RSI divergence at the sweep (video 1)", group = "Strategy")
@@ -20,22 +25,87 @@ maxRiskAtr = input.float(6.0, "Skip if SL wider than N x ATR", group = "Strategy
 atrLen     = input.int(14, "ATR period", group = "Strategy")
 alertBuy   = input.bool(true, "Alert on BUY", group = "Alerts")
 alertSell  = input.bool(true, "Alert on SELL (exit if you hold the stock)", group = "Alerts")
+c01 = input.symbol("", "Custom 1", group = "Custom list (Market list = Custom)")
+c02 = input.symbol("", "Custom 2", group = "Custom list (Market list = Custom)")
+c03 = input.symbol("", "Custom 3", group = "Custom list (Market list = Custom)")
+c04 = input.symbol("", "Custom 4", group = "Custom list (Market list = Custom)")
+c05 = input.symbol("", "Custom 5", group = "Custom list (Market list = Custom)")
+c06 = input.symbol("", "Custom 6", group = "Custom list (Market list = Custom)")
+c07 = input.symbol("", "Custom 7", group = "Custom list (Market list = Custom)")
+c08 = input.symbol("", "Custom 8", group = "Custom list (Market list = Custom)")
+c09 = input.symbol("", "Custom 9", group = "Custom list (Market list = Custom)")
+c10 = input.symbol("", "Custom 10", group = "Custom list (Market list = Custom)")
+c11 = input.symbol("", "Custom 11", group = "Custom list (Market list = Custom)")
+c12 = input.symbol("", "Custom 12", group = "Custom list (Market list = Custom)")
+c13 = input.symbol("", "Custom 13", group = "Custom list (Market list = Custom)")
+c14 = input.symbol("", "Custom 14", group = "Custom list (Market list = Custom)")
+c15 = input.symbol("", "Custom 15", group = "Custom list (Market list = Custom)")
+c16 = input.symbol("", "Custom 16", group = "Custom list (Market list = Custom)")
+c17 = input.symbol("", "Custom 17", group = "Custom list (Market list = Custom)")
+c18 = input.symbol("", "Custom 18", group = "Custom list (Market list = Custom)")
+c19 = input.symbol("", "Custom 19", group = "Custom list (Market list = Custom)")
+c20 = input.symbol("", "Custom 20", group = "Custom list (Market list = Custom)")
+c21 = input.symbol("", "Custom 21", group = "Custom list (Market list = Custom)")
+c22 = input.symbol("", "Custom 22", group = "Custom list (Market list = Custom)")
+c23 = input.symbol("", "Custom 23", group = "Custom list (Market list = Custom)")
+c24 = input.symbol("", "Custom 24", group = "Custom list (Market list = Custom)")
+c25 = input.symbol("", "Custom 25", group = "Custom list (Market list = Custom)")
+c26 = input.symbol("", "Custom 26", group = "Custom list (Market list = Custom)")
+c27 = input.symbol("", "Custom 27", group = "Custom list (Market list = Custom)")
+c28 = input.symbol("", "Custom 28", group = "Custom list (Market list = Custom)")
+c29 = input.symbol("", "Custom 29", group = "Custom list (Market list = Custom)")
+c30 = input.symbol("", "Custom 30", group = "Custom list (Market list = Custom)")
+c31 = input.symbol("", "Custom 31", group = "Custom list (Market list = Custom)")
+c32 = input.symbol("", "Custom 32", group = "Custom list (Market list = Custom)")
+c33 = input.symbol("", "Custom 33", group = "Custom list (Market list = Custom)")
+c34 = input.symbol("", "Custom 34", group = "Custom list (Market list = Custom)")
+c35 = input.symbol("", "Custom 35", group = "Custom list (Market list = Custom)")
+c36 = input.symbol("", "Custom 36", group = "Custom list (Market list = Custom)")
+c37 = input.symbol("", "Custom 37", group = "Custom list (Market list = Custom)")
+c38 = input.symbol("", "Custom 38", group = "Custom list (Market list = Custom)")
+c39 = input.symbol("", "Custom 39", group = "Custom list (Market list = Custom)")
+c40 = input.symbol("", "Custom 40", group = "Custom list (Market list = Custom)")
 
-sym01 = input.symbol("TADAWUL:2222", "Stock 1", group = "Watchlist")  // Aramco
-sym02 = input.symbol("TADAWUL:1120", "Stock 2", group = "Watchlist")  // Al Rajhi
-sym03 = input.symbol("TADAWUL:1150", "Stock 3", group = "Watchlist")  // Alinma
-sym04 = input.symbol("TADAWUL:1180", "Stock 4", group = "Watchlist")  // SNB
-sym05 = input.symbol("TADAWUL:2010", "Stock 5", group = "Watchlist")  // SABIC
-sym06 = input.symbol("TADAWUL:7010", "Stock 6", group = "Watchlist")  // STC
-sym07 = input.symbol("TADAWUL:1211", "Stock 7", group = "Watchlist")  // Maaden
-sym08 = input.symbol("TADAWUL:2082", "Stock 8", group = "Watchlist")  // ACWA Power
-sym09 = input.symbol("TADAWUL:1010", "Stock 9", group = "Watchlist")  // Riyad Bank
-sym10 = input.symbol("TADAWUL:2280", "Stock 10", group = "Watchlist")  // Almarai
-sym11 = input.symbol("TADAWUL:4190", "Stock 11", group = "Watchlist")  // Jarir
-sym12 = input.symbol("TADAWUL:1060", "Stock 12", group = "Watchlist")  // SAB
-sym13 = input.symbol("TADAWUL:2020", "Stock 13", group = "Watchlist")  // SABIC AN
-sym14 = input.symbol("TADAWUL:4013", "Stock 14", group = "Watchlist")  // Sulaiman Al Habib
-sym15 = input.symbol("TADAWUL:5110", "Stock 15", group = "Watchlist")  // Saudi Electricity
+sym01 = preset == "Saudi (Sahm)" ? "TADAWUL:2222" : preset == "US (Sahm)" ? "NASDAQ:AAPL" : c01  // Aramco / NASDAQ:AAPL
+sym02 = preset == "Saudi (Sahm)" ? "TADAWUL:1120" : preset == "US (Sahm)" ? "NASDAQ:MSFT" : c02  // Al Rajhi / NASDAQ:MSFT
+sym03 = preset == "Saudi (Sahm)" ? "TADAWUL:1180" : preset == "US (Sahm)" ? "NASDAQ:NVDA" : c03  // SNB / NASDAQ:NVDA
+sym04 = preset == "Saudi (Sahm)" ? "TADAWUL:1150" : preset == "US (Sahm)" ? "NASDAQ:AMZN" : c04  // Alinma / NASDAQ:AMZN
+sym05 = preset == "Saudi (Sahm)" ? "TADAWUL:1010" : preset == "US (Sahm)" ? "NASDAQ:GOOGL" : c05  // Riyad Bank / NASDAQ:GOOGL
+sym06 = preset == "Saudi (Sahm)" ? "TADAWUL:1060" : preset == "US (Sahm)" ? "NASDAQ:META" : c06  // SAB / NASDAQ:META
+sym07 = preset == "Saudi (Sahm)" ? "TADAWUL:1050" : preset == "US (Sahm)" ? "NASDAQ:TSLA" : c07  // Banque Saudi Fransi / NASDAQ:TSLA
+sym08 = preset == "Saudi (Sahm)" ? "TADAWUL:1080" : preset == "US (Sahm)" ? "NASDAQ:AVGO" : c08  // Arab National Bank / NASDAQ:AVGO
+sym09 = preset == "Saudi (Sahm)" ? "TADAWUL:1140" : preset == "US (Sahm)" ? "NASDAQ:AMD" : c09  // Albilad / NASDAQ:AMD
+sym10 = preset == "Saudi (Sahm)" ? "TADAWUL:1030" : preset == "US (Sahm)" ? "NASDAQ:NFLX" : c10  // SAIB / NASDAQ:NFLX
+sym11 = preset == "Saudi (Sahm)" ? "TADAWUL:2010" : preset == "US (Sahm)" ? "NASDAQ:COST" : c11  // SABIC / NASDAQ:COST
+sym12 = preset == "Saudi (Sahm)" ? "TADAWUL:2020" : preset == "US (Sahm)" ? "NASDAQ:PEP" : c12  // SABIC Agri-Nutrients / NASDAQ:PEP
+sym13 = preset == "Saudi (Sahm)" ? "TADAWUL:2310" : preset == "US (Sahm)" ? "NASDAQ:INTC" : c13  // Sipchem / NASDAQ:INTC
+sym14 = preset == "Saudi (Sahm)" ? "TADAWUL:2350" : preset == "US (Sahm)" ? "NASDAQ:ADBE" : c14  // Saudi Kayan / NASDAQ:ADBE
+sym15 = preset == "Saudi (Sahm)" ? "TADAWUL:2290" : preset == "US (Sahm)" ? "NASDAQ:PLTR" : c15  // Yansab / NASDAQ:PLTR
+sym16 = preset == "Saudi (Sahm)" ? "TADAWUL:1211" : preset == "US (Sahm)" ? "NASDAQ:COIN" : c16  // Maaden / NASDAQ:COIN
+sym17 = preset == "Saudi (Sahm)" ? "TADAWUL:7010" : preset == "US (Sahm)" ? "NASDAQ:ASML" : c17  // STC / NASDAQ:ASML
+sym18 = preset == "Saudi (Sahm)" ? "TADAWUL:7020" : preset == "US (Sahm)" ? "NASDAQ:QQQ" : c18  // Mobily / NASDAQ:QQQ
+sym19 = preset == "Saudi (Sahm)" ? "TADAWUL:7030" : preset == "US (Sahm)" ? "NASDAQ:SMCI" : c19  // Zain KSA / NASDAQ:SMCI
+sym20 = preset == "Saudi (Sahm)" ? "TADAWUL:7203" : preset == "US (Sahm)" ? "NASDAQ:MU" : c20  // Elm / NASDAQ:MU
+sym21 = preset == "Saudi (Sahm)" ? "TADAWUL:2082" : preset == "US (Sahm)" ? "NYSE:JPM" : c21  // ACWA Power / NYSE:JPM
+sym22 = preset == "Saudi (Sahm)" ? "TADAWUL:5110" : preset == "US (Sahm)" ? "NYSE:V" : c22  // Saudi Electricity / NYSE:V
+sym23 = preset == "Saudi (Sahm)" ? "TADAWUL:2280" : preset == "US (Sahm)" ? "NYSE:MA" : c23  // Almarai / NYSE:MA
+sym24 = preset == "Saudi (Sahm)" ? "TADAWUL:2050" : preset == "US (Sahm)" ? "NYSE:BAC" : c24  // Savola / NYSE:BAC
+sym25 = preset == "Saudi (Sahm)" ? "TADAWUL:4190" : preset == "US (Sahm)" ? "NYSE:XOM" : c25  // Jarir / NYSE:XOM
+sym26 = preset == "Saudi (Sahm)" ? "TADAWUL:4013" : preset == "US (Sahm)" ? "NYSE:CVX" : c26  // Dr Sulaiman Al Habib / NYSE:CVX
+sym27 = preset == "Saudi (Sahm)" ? "TADAWUL:4002" : preset == "US (Sahm)" ? "NYSE:WMT" : c27  // Mouwasat / NYSE:WMT
+sym28 = preset == "Saudi (Sahm)" ? "TADAWUL:4164" : preset == "US (Sahm)" ? "NYSE:KO" : c28  // Nahdi / NYSE:KO
+sym29 = preset == "Saudi (Sahm)" ? "TADAWUL:4280" : preset == "US (Sahm)" ? "NYSE:JNJ" : c29  // Kingdom Holding / NYSE:JNJ
+sym30 = preset == "Saudi (Sahm)" ? "TADAWUL:4300" : preset == "US (Sahm)" ? "NYSE:UNH" : c30  // Dar Al Arkan / NYSE:UNH
+sym31 = preset == "Saudi (Sahm)" ? "TADAWUL:4263" : preset == "US (Sahm)" ? "NYSE:LLY" : c31  // SAL Logistics / NYSE:LLY
+sym32 = preset == "Saudi (Sahm)" ? "TADAWUL:4030" : preset == "US (Sahm)" ? "NYSE:PFE" : c32  // Bahri / NYSE:PFE
+sym33 = preset == "Saudi (Sahm)" ? "TADAWUL:2381" : preset == "US (Sahm)" ? "NYSE:DIS" : c33  // Arabian Drilling / NYSE:DIS
+sym34 = preset == "Saudi (Sahm)" ? "TADAWUL:2223" : preset == "US (Sahm)" ? "NYSE:ORCL" : c34  // Luberef / NYSE:ORCL
+sym35 = preset == "Saudi (Sahm)" ? "TADAWUL:4001" : preset == "US (Sahm)" ? "NYSE:CRM" : c35  // Al Othaim / NYSE:CRM
+sym36 = preset == "Saudi (Sahm)" ? "TADAWUL:8210" : preset == "US (Sahm)" ? "NYSE:UBER" : c36  // Bupa Arabia / NYSE:UBER
+sym37 = preset == "Saudi (Sahm)" ? "TADAWUL:8010" : preset == "US (Sahm)" ? "NYSE:SHOP" : c37  // Tawuniya / NYSE:SHOP
+sym38 = preset == "Saudi (Sahm)" ? "TADAWUL:1214" : preset == "US (Sahm)" ? "NYSE:TSM" : c38  // Shaker / NYSE:TSM
+sym39 = preset == "Saudi (Sahm)" ? "TADAWUL:1834" : preset == "US (Sahm)" ? "AMEX:SPY" : c39  // SMASCO / AMEX:SPY
+sym40 = preset == "Saudi (Sahm)" ? "TADAWUL:4321" : preset == "US (Sahm)" ? "AMEX:KSA" : c40  // Arabian Centres / AMEX:KSA
 
 // Runs the SELL state machine. BUY = call it with the chart mirrored upside-down.
 // Returns [signal, entry, stop, target, rsiDivergence, phase]
@@ -167,81 +237,209 @@ smc(float o, float h, float l, float c, float rs, float at) =>
     [sig, e, s, tp, dv, phase]
 
 // Runs both directions on the requested symbol.
-// Returns [buySig, buyEntry, buySL, buyTP, sellSig, sellEntry, sellSL, sellTP, buyPhase, sellPhase]
 scan() =>
     r = ta.rsi(close, rsiLen)
     a = ta.atr(atrLen)
     [sSig, sE, sSL, sTP, sDiv, sPh] = smc(open, high, low, close, r, a)
     [bSig, bE, bSL, bTP, bDiv, bPh] = smc(-open, -low, -high, -close, 100 - r, a)
-    [bSig, -bE, -bSL, -bTP, sSig, sE, sSL, sTP, bPh, sPh]
+    [bSig, -bE, -bSL, -bTP, sSig, sE, sSL, sTP, bPh, sPh, time]
 
 phaseText(int p) =>
-    p == 0 ? "waiting" : p == 1 ? "sweep" : p == 2 ? "CHoCH" : p == 3 ? "BOS" : "FVG retrace"
+    na(p) ? "n/a" : p == 0 ? "waiting" : p == 1 ? "sweep" : p == 2 ? "CHoCH" : p == 3 ? "BOS" : "FVG retrace"
 
 fmt(float x) => str.tostring(x, "#.##")
 
-var table tb = table.new(position.top_right, 4, 16, bgcolor = color.new(color.black, 15), border_width = 1)
-var array<string> lastSig = array.new_string(15, "-")
-string msgs = ""
-
-// handles one symbol: updates the table and collects alert text
-check(int row, string sym, bool bS, float bE, float bSL, float bTP, bool sS, float sE, float sSL, float sTP, int bP, int sP) =>
-    string m = ""
+shortName(string sym) =>
     parts = str.split(sym, ":")
-    name = parts.size() > 1 ? parts.get(1) : sym
-    if bS
-        lastSig.set(row, "BUY " + fmt(bE))
-        if alertBuy
-            m := "BUY " + name + " | Entry " + fmt(bE) + " | SL " + fmt(bSL) + " | TP " + fmt(bTP) + "\n"
-    if sS
-        lastSig.set(row, "SELL " + fmt(sE))
-        if alertSell
-            m := m + "SELL " + name + " | Entry " + fmt(sE) + " | SL " + fmt(sSL) + " | TP " + fmt(sTP) + "\n"
-    if barstate.islast
-        table.cell(tb, 0, row + 1, name, text_color = color.white, text_size = size.small)
-        table.cell(tb, 1, row + 1, bS ? "BUY NOW" : phaseText(bP), text_color = bS ? color.lime : color.silver, text_size = size.small)
-        table.cell(tb, 2, row + 1, sS ? "SELL NOW" : phaseText(sP), text_color = sS ? color.red : color.silver, text_size = size.small)
-        last = lastSig.get(row)
-        table.cell(tb, 3, row + 1, last, text_size = size.small,
-                   text_color = str.startswith(last, "BUY") ? color.lime : str.startswith(last, "SELL") ? color.red : color.gray)
+    parts.size() > 1 ? parts.get(1) : sym
+
+var table tb = table.new(position.top_right, 4, 41, bgcolor = color.new(color.black, 15), border_width = 1)
+var array<string> lastTxt = array.new_string(40, "-")
+var array<int>    lastBar = array.new_int(40, na)
+var array<string> rName = array.new_string()
+var array<string> rBuy  = array.new_string()
+var array<string> rSell = array.new_string()
+var array<string> rLast = array.new_string()
+var array<color>  rCol  = array.new_color()
+string msgs = ""
+if barstate.islast
+    rName.clear()
+    rBuy.clear()
+    rSell.clear()
+    rLast.clear()
+    rCol.clear()
+
+// handles one symbol: remembers the last signal, collects alert text and table rows
+check(int idx, string sym, bool used, bool bSig, float bE, float bSL, float bTP, bool sSig, float sE, float sSL, float sTP, int bP, int sP, int tm) =>
+    // only count a signal once, on the bar where that stock actually printed a new candle
+    isNew = na(tm[1]) or tm != tm[1]
+    bS = bSig and isNew
+    sS = sSig and isNew
+    string m = ""
+    if used
+        name = shortName(sym)
+        if bS
+            lastTxt.set(idx, "BUY " + fmt(bE))
+            lastBar.set(idx, bar_index)
+            if alertBuy
+                m := "BUY " + name + " | Entry " + fmt(bE) + " | SL " + fmt(bSL) + " | TP " + fmt(bTP) + "\n"
+        if sS
+            lastTxt.set(idx, "SELL " + fmt(sE))
+            lastBar.set(idx, bar_index)
+            if alertSell
+                m := m + "SELL " + name + " | Entry " + fmt(sE) + " | SL " + fmt(sSL) + " | TP " + fmt(sTP) + "\n"
+        if barstate.islast
+            lb = lastBar.get(idx)
+            int ago = na(lb) ? na : bar_index - lb
+            recent = not na(ago) and ago <= recentBars
+            active = (not na(bP) and bP > 0) or (not na(sP) and sP > 0)
+            if showAll or active or recent or bS or sS
+                rName.push(name)
+                rBuy.push(bS ? "BUY NOW" : phaseText(bP))
+                rSell.push(sS ? "SELL NOW" : phaseText(sP))
+                lt = lastTxt.get(idx)
+                rLast.push(na(ago) ? "-" : lt + " (" + str.tostring(ago) + " bars ago)")
+                rCol.push(str.startswith(lt, "BUY") ? color.lime : str.startswith(lt, "SELL") ? color.red : color.gray)
     m
 
+u01 = sym01 != ""
+[b01, be01, bsl01, btp01, s01, se01, ssl01, stp01, bp01, sp01, t01] = request.security(u01 ? sym01 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(0, sym01, u01, b01, be01, bsl01, btp01, s01, se01, ssl01, stp01, bp01, sp01, t01)
+u02 = sym02 != ""
+[b02, be02, bsl02, btp02, s02, se02, ssl02, stp02, bp02, sp02, t02] = request.security(u02 ? sym02 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(1, sym02, u02, b02, be02, bsl02, btp02, s02, se02, ssl02, stp02, bp02, sp02, t02)
+u03 = sym03 != ""
+[b03, be03, bsl03, btp03, s03, se03, ssl03, stp03, bp03, sp03, t03] = request.security(u03 ? sym03 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(2, sym03, u03, b03, be03, bsl03, btp03, s03, se03, ssl03, stp03, bp03, sp03, t03)
+u04 = sym04 != ""
+[b04, be04, bsl04, btp04, s04, se04, ssl04, stp04, bp04, sp04, t04] = request.security(u04 ? sym04 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(3, sym04, u04, b04, be04, bsl04, btp04, s04, se04, ssl04, stp04, bp04, sp04, t04)
+u05 = sym05 != ""
+[b05, be05, bsl05, btp05, s05, se05, ssl05, stp05, bp05, sp05, t05] = request.security(u05 ? sym05 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(4, sym05, u05, b05, be05, bsl05, btp05, s05, se05, ssl05, stp05, bp05, sp05, t05)
+u06 = sym06 != ""
+[b06, be06, bsl06, btp06, s06, se06, ssl06, stp06, bp06, sp06, t06] = request.security(u06 ? sym06 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(5, sym06, u06, b06, be06, bsl06, btp06, s06, se06, ssl06, stp06, bp06, sp06, t06)
+u07 = sym07 != ""
+[b07, be07, bsl07, btp07, s07, se07, ssl07, stp07, bp07, sp07, t07] = request.security(u07 ? sym07 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(6, sym07, u07, b07, be07, bsl07, btp07, s07, se07, ssl07, stp07, bp07, sp07, t07)
+u08 = sym08 != ""
+[b08, be08, bsl08, btp08, s08, se08, ssl08, stp08, bp08, sp08, t08] = request.security(u08 ? sym08 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(7, sym08, u08, b08, be08, bsl08, btp08, s08, se08, ssl08, stp08, bp08, sp08, t08)
+u09 = sym09 != ""
+[b09, be09, bsl09, btp09, s09, se09, ssl09, stp09, bp09, sp09, t09] = request.security(u09 ? sym09 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(8, sym09, u09, b09, be09, bsl09, btp09, s09, se09, ssl09, stp09, bp09, sp09, t09)
+u10 = sym10 != ""
+[b10, be10, bsl10, btp10, s10, se10, ssl10, stp10, bp10, sp10, t10] = request.security(u10 ? sym10 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(9, sym10, u10, b10, be10, bsl10, btp10, s10, se10, ssl10, stp10, bp10, sp10, t10)
+u11 = sym11 != ""
+[b11, be11, bsl11, btp11, s11, se11, ssl11, stp11, bp11, sp11, t11] = request.security(u11 ? sym11 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(10, sym11, u11, b11, be11, bsl11, btp11, s11, se11, ssl11, stp11, bp11, sp11, t11)
+u12 = sym12 != ""
+[b12, be12, bsl12, btp12, s12, se12, ssl12, stp12, bp12, sp12, t12] = request.security(u12 ? sym12 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(11, sym12, u12, b12, be12, bsl12, btp12, s12, se12, ssl12, stp12, bp12, sp12, t12)
+u13 = sym13 != ""
+[b13, be13, bsl13, btp13, s13, se13, ssl13, stp13, bp13, sp13, t13] = request.security(u13 ? sym13 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(12, sym13, u13, b13, be13, bsl13, btp13, s13, se13, ssl13, stp13, bp13, sp13, t13)
+u14 = sym14 != ""
+[b14, be14, bsl14, btp14, s14, se14, ssl14, stp14, bp14, sp14, t14] = request.security(u14 ? sym14 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(13, sym14, u14, b14, be14, bsl14, btp14, s14, se14, ssl14, stp14, bp14, sp14, t14)
+u15 = sym15 != ""
+[b15, be15, bsl15, btp15, s15, se15, ssl15, stp15, bp15, sp15, t15] = request.security(u15 ? sym15 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(14, sym15, u15, b15, be15, bsl15, btp15, s15, se15, ssl15, stp15, bp15, sp15, t15)
+u16 = sym16 != ""
+[b16, be16, bsl16, btp16, s16, se16, ssl16, stp16, bp16, sp16, t16] = request.security(u16 ? sym16 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(15, sym16, u16, b16, be16, bsl16, btp16, s16, se16, ssl16, stp16, bp16, sp16, t16)
+u17 = sym17 != ""
+[b17, be17, bsl17, btp17, s17, se17, ssl17, stp17, bp17, sp17, t17] = request.security(u17 ? sym17 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(16, sym17, u17, b17, be17, bsl17, btp17, s17, se17, ssl17, stp17, bp17, sp17, t17)
+u18 = sym18 != ""
+[b18, be18, bsl18, btp18, s18, se18, ssl18, stp18, bp18, sp18, t18] = request.security(u18 ? sym18 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(17, sym18, u18, b18, be18, bsl18, btp18, s18, se18, ssl18, stp18, bp18, sp18, t18)
+u19 = sym19 != ""
+[b19, be19, bsl19, btp19, s19, se19, ssl19, stp19, bp19, sp19, t19] = request.security(u19 ? sym19 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(18, sym19, u19, b19, be19, bsl19, btp19, s19, se19, ssl19, stp19, bp19, sp19, t19)
+u20 = sym20 != ""
+[b20, be20, bsl20, btp20, s20, se20, ssl20, stp20, bp20, sp20, t20] = request.security(u20 ? sym20 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(19, sym20, u20, b20, be20, bsl20, btp20, s20, se20, ssl20, stp20, bp20, sp20, t20)
+u21 = sym21 != ""
+[b21, be21, bsl21, btp21, s21, se21, ssl21, stp21, bp21, sp21, t21] = request.security(u21 ? sym21 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(20, sym21, u21, b21, be21, bsl21, btp21, s21, se21, ssl21, stp21, bp21, sp21, t21)
+u22 = sym22 != ""
+[b22, be22, bsl22, btp22, s22, se22, ssl22, stp22, bp22, sp22, t22] = request.security(u22 ? sym22 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(21, sym22, u22, b22, be22, bsl22, btp22, s22, se22, ssl22, stp22, bp22, sp22, t22)
+u23 = sym23 != ""
+[b23, be23, bsl23, btp23, s23, se23, ssl23, stp23, bp23, sp23, t23] = request.security(u23 ? sym23 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(22, sym23, u23, b23, be23, bsl23, btp23, s23, se23, ssl23, stp23, bp23, sp23, t23)
+u24 = sym24 != ""
+[b24, be24, bsl24, btp24, s24, se24, ssl24, stp24, bp24, sp24, t24] = request.security(u24 ? sym24 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(23, sym24, u24, b24, be24, bsl24, btp24, s24, se24, ssl24, stp24, bp24, sp24, t24)
+u25 = sym25 != ""
+[b25, be25, bsl25, btp25, s25, se25, ssl25, stp25, bp25, sp25, t25] = request.security(u25 ? sym25 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(24, sym25, u25, b25, be25, bsl25, btp25, s25, se25, ssl25, stp25, bp25, sp25, t25)
+u26 = sym26 != ""
+[b26, be26, bsl26, btp26, s26, se26, ssl26, stp26, bp26, sp26, t26] = request.security(u26 ? sym26 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(25, sym26, u26, b26, be26, bsl26, btp26, s26, se26, ssl26, stp26, bp26, sp26, t26)
+u27 = sym27 != ""
+[b27, be27, bsl27, btp27, s27, se27, ssl27, stp27, bp27, sp27, t27] = request.security(u27 ? sym27 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(26, sym27, u27, b27, be27, bsl27, btp27, s27, se27, ssl27, stp27, bp27, sp27, t27)
+u28 = sym28 != ""
+[b28, be28, bsl28, btp28, s28, se28, ssl28, stp28, bp28, sp28, t28] = request.security(u28 ? sym28 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(27, sym28, u28, b28, be28, bsl28, btp28, s28, se28, ssl28, stp28, bp28, sp28, t28)
+u29 = sym29 != ""
+[b29, be29, bsl29, btp29, s29, se29, ssl29, stp29, bp29, sp29, t29] = request.security(u29 ? sym29 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(28, sym29, u29, b29, be29, bsl29, btp29, s29, se29, ssl29, stp29, bp29, sp29, t29)
+u30 = sym30 != ""
+[b30, be30, bsl30, btp30, s30, se30, ssl30, stp30, bp30, sp30, t30] = request.security(u30 ? sym30 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(29, sym30, u30, b30, be30, bsl30, btp30, s30, se30, ssl30, stp30, bp30, sp30, t30)
+u31 = sym31 != ""
+[b31, be31, bsl31, btp31, s31, se31, ssl31, stp31, bp31, sp31, t31] = request.security(u31 ? sym31 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(30, sym31, u31, b31, be31, bsl31, btp31, s31, se31, ssl31, stp31, bp31, sp31, t31)
+u32 = sym32 != ""
+[b32, be32, bsl32, btp32, s32, se32, ssl32, stp32, bp32, sp32, t32] = request.security(u32 ? sym32 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(31, sym32, u32, b32, be32, bsl32, btp32, s32, se32, ssl32, stp32, bp32, sp32, t32)
+u33 = sym33 != ""
+[b33, be33, bsl33, btp33, s33, se33, ssl33, stp33, bp33, sp33, t33] = request.security(u33 ? sym33 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(32, sym33, u33, b33, be33, bsl33, btp33, s33, se33, ssl33, stp33, bp33, sp33, t33)
+u34 = sym34 != ""
+[b34, be34, bsl34, btp34, s34, se34, ssl34, stp34, bp34, sp34, t34] = request.security(u34 ? sym34 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(33, sym34, u34, b34, be34, bsl34, btp34, s34, se34, ssl34, stp34, bp34, sp34, t34)
+u35 = sym35 != ""
+[b35, be35, bsl35, btp35, s35, se35, ssl35, stp35, bp35, sp35, t35] = request.security(u35 ? sym35 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(34, sym35, u35, b35, be35, bsl35, btp35, s35, se35, ssl35, stp35, bp35, sp35, t35)
+u36 = sym36 != ""
+[b36, be36, bsl36, btp36, s36, se36, ssl36, stp36, bp36, sp36, t36] = request.security(u36 ? sym36 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(35, sym36, u36, b36, be36, bsl36, btp36, s36, se36, ssl36, stp36, bp36, sp36, t36)
+u37 = sym37 != ""
+[b37, be37, bsl37, btp37, s37, se37, ssl37, stp37, bp37, sp37, t37] = request.security(u37 ? sym37 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(36, sym37, u37, b37, be37, bsl37, btp37, s37, se37, ssl37, stp37, bp37, sp37, t37)
+u38 = sym38 != ""
+[b38, be38, bsl38, btp38, s38, se38, ssl38, stp38, bp38, sp38, t38] = request.security(u38 ? sym38 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(37, sym38, u38, b38, be38, bsl38, btp38, s38, se38, ssl38, stp38, bp38, sp38, t38)
+u39 = sym39 != ""
+[b39, be39, bsl39, btp39, s39, se39, ssl39, stp39, bp39, sp39, t39] = request.security(u39 ? sym39 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(38, sym39, u39, b39, be39, bsl39, btp39, s39, se39, ssl39, stp39, bp39, sp39, t39)
+u40 = sym40 != ""
+[b40, be40, bsl40, btp40, s40, se40, ssl40, stp40, bp40, sp40, t40] = request.security(u40 ? sym40 : syminfo.tickerid, timeframe.period, scan(), ignore_invalid_symbol = true, lookahead = barmerge.lookahead_off)
+msgs += check(39, sym40, u40, b40, be40, bsl40, btp40, s40, se40, ssl40, stp40, bp40, sp40, t40)
+
 if barstate.islast
-    table.cell(tb, 0, 0, "Stock", text_color = color.yellow, text_size = size.small)
+    table.clear(tb, 0, 0, 3, 40)
+    table.cell(tb, 0, 0, preset, text_color = color.yellow, text_size = size.small)
     table.cell(tb, 1, 0, "BUY setup", text_color = color.yellow, text_size = size.small)
     table.cell(tb, 2, 0, "SELL setup", text_color = color.yellow, text_size = size.small)
     table.cell(tb, 3, 0, "Last signal", text_color = color.yellow, text_size = size.small)
-
-[b01, be01, bsl01, btp01, s01, se01, ssl01, stp01, bp01, sp01] = request.security(sym01, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(0, sym01, b01, be01, bsl01, btp01, s01, se01, ssl01, stp01, bp01, sp01)
-[b02, be02, bsl02, btp02, s02, se02, ssl02, stp02, bp02, sp02] = request.security(sym02, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(1, sym02, b02, be02, bsl02, btp02, s02, se02, ssl02, stp02, bp02, sp02)
-[b03, be03, bsl03, btp03, s03, se03, ssl03, stp03, bp03, sp03] = request.security(sym03, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(2, sym03, b03, be03, bsl03, btp03, s03, se03, ssl03, stp03, bp03, sp03)
-[b04, be04, bsl04, btp04, s04, se04, ssl04, stp04, bp04, sp04] = request.security(sym04, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(3, sym04, b04, be04, bsl04, btp04, s04, se04, ssl04, stp04, bp04, sp04)
-[b05, be05, bsl05, btp05, s05, se05, ssl05, stp05, bp05, sp05] = request.security(sym05, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(4, sym05, b05, be05, bsl05, btp05, s05, se05, ssl05, stp05, bp05, sp05)
-[b06, be06, bsl06, btp06, s06, se06, ssl06, stp06, bp06, sp06] = request.security(sym06, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(5, sym06, b06, be06, bsl06, btp06, s06, se06, ssl06, stp06, bp06, sp06)
-[b07, be07, bsl07, btp07, s07, se07, ssl07, stp07, bp07, sp07] = request.security(sym07, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(6, sym07, b07, be07, bsl07, btp07, s07, se07, ssl07, stp07, bp07, sp07)
-[b08, be08, bsl08, btp08, s08, se08, ssl08, stp08, bp08, sp08] = request.security(sym08, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(7, sym08, b08, be08, bsl08, btp08, s08, se08, ssl08, stp08, bp08, sp08)
-[b09, be09, bsl09, btp09, s09, se09, ssl09, stp09, bp09, sp09] = request.security(sym09, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(8, sym09, b09, be09, bsl09, btp09, s09, se09, ssl09, stp09, bp09, sp09)
-[b10, be10, bsl10, btp10, s10, se10, ssl10, stp10, bp10, sp10] = request.security(sym10, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(9, sym10, b10, be10, bsl10, btp10, s10, se10, ssl10, stp10, bp10, sp10)
-[b11, be11, bsl11, btp11, s11, se11, ssl11, stp11, bp11, sp11] = request.security(sym11, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(10, sym11, b11, be11, bsl11, btp11, s11, se11, ssl11, stp11, bp11, sp11)
-[b12, be12, bsl12, btp12, s12, se12, ssl12, stp12, bp12, sp12] = request.security(sym12, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(11, sym12, b12, be12, bsl12, btp12, s12, se12, ssl12, stp12, bp12, sp12)
-[b13, be13, bsl13, btp13, s13, se13, ssl13, stp13, bp13, sp13] = request.security(sym13, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(12, sym13, b13, be13, bsl13, btp13, s13, se13, ssl13, stp13, bp13, sp13)
-[b14, be14, bsl14, btp14, s14, se14, ssl14, stp14, bp14, sp14] = request.security(sym14, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(13, sym14, b14, be14, bsl14, btp14, s14, se14, ssl14, stp14, bp14, sp14)
-[b15, be15, bsl15, btp15, s15, se15, ssl15, stp15, bp15, sp15] = request.security(sym15, timeframe.period, scan(), lookahead = barmerge.lookahead_off)
-msgs += check(14, sym15, b15, be15, bsl15, btp15, s15, se15, ssl15, stp15, bp15, sp15)
+    n = rName.size()
+    if n == 0
+        table.cell(tb, 0, 1, "No active setups right now", text_color = color.silver, text_size = size.small)
+    else
+        for k = 0 to n - 1
+            bt = rBuy.get(k)
+            st = rSell.get(k)
+            table.cell(tb, 0, k + 1, rName.get(k), text_color = color.white, text_size = size.small)
+            table.cell(tb, 1, k + 1, bt, text_color = bt == "BUY NOW" ? color.lime : color.silver, text_size = size.small)
+            table.cell(tb, 2, k + 1, st, text_color = st == "SELL NOW" ? color.red : color.silver, text_size = size.small)
+            table.cell(tb, 3, k + 1, rLast.get(k), text_color = rCol.get(k), text_size = size.small)
 
 if str.length(msgs) > 0
-    alert("SMC + RSI (" + timeframe.period + ")\n" + msgs, alert.freq_once_per_bar_close)
+    alert("SMC + RSI " + preset + " (" + timeframe.period + ")\n" + msgs, alert.freq_once_per_bar_close)
