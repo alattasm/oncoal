@@ -6,6 +6,7 @@ Common settings for all three books
 |---|---|
 | Language | English |
 | Author | Baby Yusuf |
+| Subtitle note | Keep the subtitle short and matching the cover — KDP can reject keyword-stuffed subtitles |
 | Publishing rights | I own the copyright and I hold the necessary publishing rights |
 | Primary audience | Sexually explicit: **No** · Reading age: **3** to **8** |
 | ISBN | Get a free KDP ISBN |
@@ -21,7 +22,7 @@ Common settings for all three books
 ## Book 1 — My Cute Animals
 
 **Title:** My Cute Animals
-**Subtitle:** Coloring Book for Kids Ages 3-8: Cute Cat, Dog, Lion, Elephant, Camel and More — Big, Easy Pictures for Toddlers and Preschoolers
+**Subtitle:** Coloring Book for Kids Ages 3-8
 
 **Description:**
 ```
@@ -59,7 +60,7 @@ Common settings for all three books
 ## Book 2 — Wonderful Sea World
 
 **Title:** Wonderful Sea World
-**Subtitle:** Coloring Book for Kids Ages 3-8: Cute Fish, Whale, Octopus, Dolphin, Shark and More — Big, Easy Ocean Pictures for Toddlers and Preschoolers
+**Subtitle:** Coloring Book for Kids Ages 3-8
 
 **Description:**
 ```
@@ -97,7 +98,7 @@ Common settings for all three books
 ## Book 3 — My Fun Vehicles
 
 **Title:** My Fun Vehicles
-**Subtitle:** Coloring Book for Kids Ages 3-8: Cars, Trucks, Trains, Planes, Rockets and More — Big, Easy Pictures for Toddlers and Preschoolers
+**Subtitle:** Coloring Book for Kids Ages 3-8
 
 **Description:**
 ```
