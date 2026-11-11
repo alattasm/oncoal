@@ -17,6 +17,7 @@ from prims import Pal, W, H, star, heart, circle, path, line, ellipse, rect, pol
 HERE = pathlib.Path(__file__).parent
 OUT = HERE / "output"
 BOOKS = ["book_animals", "book_sea", "book_vehicles"]
+BRAND_AR, BRAND_EN = "بيبي يوسف", "Baby Yusuf"
 AR_DIGITS = str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩")
 _uid = [0]
 
@@ -65,7 +66,10 @@ body{font-family:Marhey,Lalezar,sans-serif;color:#000;-webkit-print-color-adjust
 .foot{width:100%;display:flex;justify-content:space-between;align-items:center;margin-top:.08in;font-size:15px}
 .done{display:flex;align-items:center;gap:6px;font-family:Marhey;font-weight:600}
 .num{font-family:Lalezar;font-size:20px;border:3px solid #000;border-radius:999px;min-width:44px;height:44px;display:flex;align-items:center;justify-content:center}
-.en{font-family:Lalezar;font-size:22px;letter-spacing:1px}
+.en{font-family:Lalezar;font-size:22px;letter-spacing:1px;min-width:1.6in}
+.done{min-width:1.6in;justify-content:flex-end}
+.mid{display:flex;align-items:center;gap:8px}
+.brand{font-family:Lalezar;font-size:15px;color:#555;letter-spacing:.5px}
 .blank{display:block}
 .blank .note{position:absolute;bottom:.5in;width:100%;left:0;text-align:center;font-size:13px;color:#999}
 """
@@ -75,7 +79,7 @@ def coloring_page(i, ar, en, fn):
     return (
         f'<section class="page"><div class="ttl">{outlined(ar, 120, h=150, w=900)}</div>'
         f'<div class="art">{art_svg(fn)}</div>'
-        f'<div class="foot"><span class="en">{en}</span><span class="num">{str(i).translate(AR_DIGITS)}</span>{star_badge(i)}</div></section>'
+        f'<div class="foot"><span class="en">{en}</span><span class="mid"><span class="num">{str(i).translate(AR_DIGITS)}</span><span class="brand">© {BRAND_EN}</span></span>{star_badge(i)}</div></section>'
     )
 
 
@@ -105,7 +109,7 @@ def name_page(book):
     o += f'<text x="500" y="1180" text-anchor="middle" direction="rtl" font-family="Marhey" font-weight="700" font-size="42">ارسم نفسك هنا!</text>'
     for x, y, s in [(205, 560, .9), (795, 560, .9), (205, 1065, .9), (795, 1065, .9)]:
         o += heart(x, y, s)
-    o += sparkle(500, 1235, 1) + sparkle(380, 1240, .6) + sparkle(620, 1240, .6)
+    o += f'<text x="500" y="1238" text-anchor="middle" direction="rtl" font-family="Lalezar" font-size="34">© {BRAND_AR} · {BRAND_EN}</text>'
     return f'<section class="page"><svg viewBox="0 0 1000 1300" width="100%" height="100%">{o}</svg></section>'
 
 
@@ -165,6 +169,7 @@ def certificate_page(book):
         o += line(f"M{x - 140},1130L{x + 140},1130", 5)
         o += f'<text x="{x}" y="1180" text-anchor="middle" font-family="Marhey" font-weight="600" font-size="32">{lab}</text>'
     o += star(500, 1140, 38) + star(420, 1160, 20) + star(580, 1160, 20)
+    o += f'<text x="500" y="1238" text-anchor="middle" direction="rtl" font-family="Lalezar" font-size="34">من {BRAND_AR} · {BRAND_EN}</text>'
     return f'<section class="page"><svg viewBox="0 0 1000 1300" width="100%" height="100%">{o}</svg></section>'
 
 
@@ -180,16 +185,18 @@ def cover_page(book):
         tiles += f'<div class="tile" style="transform:rotate({rot}deg)">{art_svg(fn, color=True, border=12)}</div>'
     n = str(len(book["pages"])).translate(AR_DIGITS)
     burst = star(100, 100, 92, "#ff4d6d", 6, inner=.78).replace('<path', '<path ') + f'<text x="100" y="98" text-anchor="middle" font-family="Lalezar" font-size="52" fill="#fff">{n}</text><text x="100" y="140" text-anchor="middle" font-family="Lalezar" font-size="32" fill="#fff">رسمة</text>'
-    sp = "".join(f'<div class="sp" style="left:{x}%;top:{y}%;width:{s}px">{f"<svg viewBox=\'0 0 80 80\'>{star(40, 40, 34, c, 4)}</svg>"}</div>' for x, y, s, c in [(6, 5, 46, "#ffd84d"), (88, 4, 40, "#6ec6ff"), (4, 60, 34, "#ff9ec7"), (91, 63, 38, "#b39cff"), (48, 3, 28, "#7cc96b")])
+    sp = "".join(f'<div class="sp" style="left:{x}%;top:{y}%;width:{s}px">{f"<svg viewBox=\'0 0 80 80\'>{star(40, 40, 34, c, 4)}</svg>"}</div>' for x, y, s, c in [(6, 5, 46, "#ffd84d"), (88, 4, 40, "#6ec6ff"), (4, 60, 34, "#ff9ec7"), (91, 63, 38, "#b39cff"), (72, 12, 28, "#7cc96b")])
     return f"""<section class="page cover" style="background:linear-gradient(170deg,{bg1},{bg2});padding:.5in .55in">
-<style>.cover .tiles{{display:grid;grid-template-columns:1fr 1fr;gap:.2in;width:74%;margin-top:.14in}}
+<style>.cover .tiles{{display:grid;grid-template-columns:1fr 1fr;gap:.18in;width:70%;margin-top:.12in}}
 .cover .tile{{background:#fff;padding:.08in;border-radius:.2in;box-shadow:0 .06in .14in rgba(0,0,0,.18)}}
 .cover .sub{{font-family:Lalezar;font-size:34px;background:{acc};color:#fff;border:4px solid #000;border-radius:999px;padding:.02in .4in .06in;margin-top:.02in}}
 .cover .en{{font-family:Lalezar;font-size:30px;letter-spacing:2px;margin-top:.05in}}
 .cover .burst{{position:absolute;right:.35in;bottom:.45in;width:1.55in;transform:rotate(12deg)}}
 .cover .age{{position:absolute;left:.45in;bottom:.6in;font-family:Lalezar;font-size:30px;background:#fff;border:4px solid #000;border-radius:.2in;padding:.06in .22in;transform:rotate(-6deg)}}
-.cover .sp{{position:absolute}}</style>
+.cover .sp{{position:absolute}}
+.cover .logo{{display:flex;align-items:center;gap:8px;font-family:Lalezar;font-size:26px;background:#fff;border:4px solid #000;border-radius:999px;padding:.02in .3in .04in;margin-bottom:-.05in}}</style>
 {sp}
+<div class="logo"><span>{BRAND_AR}</span><svg viewBox="0 0 60 60" width="30">{heart(30, 32, .7, "#ff4d6d", 5)}</svg><span>{BRAND_EN}</span></div>
 <div style="width:100%">{outlined(book["title"], 150, fill=acc, sw=16, h=190, w=1000, y=150)}</div>
 <div class="sub" dir="rtl">{book["subtitle"]}</div>
 <div class="en">{book["en_title"].upper()}</div>
