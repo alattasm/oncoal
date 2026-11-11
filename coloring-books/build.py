@@ -221,6 +221,44 @@ def cover_page(book):
 
 
 # ---------------------------------------------------------------- assemble
+def full_cover(book, n_pages):
+    """KDP paperback wrap cover: back + spine + front, 0.125in bleed all round.
+    White paper spine = pages x 0.002252in. Under 79 pages KDP forbids spine text."""
+    bleed, trim_w, trim_h = .125, 8.5, 11
+    spine = n_pages * .002252
+    W_ = bleed * 2 + trim_w * 2 + spine
+    H_ = trim_h + bleed * 2
+    bg1, bg2 = book["cover_bg"]
+    acc = book["accent"]
+    front = cover_page(book).replace('<section class="page cover" style="background:linear-gradient(170deg,{0},{1});padding:.5in .55in">'.format(bg1, bg2),
+        f'<section class="page cover" style="position:absolute;top:0;left:{bleed + trim_w + spine:.4f}in;width:{trim_w + bleed}in;height:{H_}in;background:transparent;padding:.6in .68in .6in .55in">')
+    front = front.replace(".cover .burst{{position:absolute;right:.35in;bottom:.45in".replace("{{", "{"), ".cover .burst{position:absolute;right:.5in;bottom:.6in")
+    front = front.replace(".cover .age{position:absolute;left:.45in;bottom:.6in", ".cover .age{position:absolute;left:.5in;bottom:.75in")
+    others = [fn for ar, en, fn in book["pages"] if fn.__name__ not in book["cover_pages"]][:6]
+    thumbs = "".join(f'<div class="bt">{art_svg(fn, color=True, border=14)}</div>' for fn in others)
+    n = len(book["pages"])
+    bullets = [f"{n} adorable, original illustrations", "Big, bold lines perfect for little hands",
+               "Single-sided pages - no bleed-through", "Bonus: Star Chart & Little Artist Certificate",
+               "Large 8.5 x 11 inch pages"]
+    back = f"""<div class="back" style="position:absolute;top:0;left:0;width:{bleed + trim_w}in;height:{H_}in;padding:{bleed + .55}in .6in .6in {bleed + .6}in">
+<style>.back{{display:flex;flex-direction:column;align-items:center;font-family:Fredoka}}
+.back .logo{{display:flex;align-items:center;gap:8px;font-weight:700;font-size:24px;background:#fff;border:4px solid #000;border-radius:999px;padding:.02in .3in .04in}}
+.back h2{{font-size:46px;margin:.18in 0 .06in;color:{acc};-webkit-text-stroke:2px #000;paint-order:stroke fill;text-align:center}}
+.back p.lead{{font-size:19px;font-weight:600;text-align:center;margin:0 .2in .12in;line-height:1.35}}
+.back ul{{list-style:none;padding:0;margin:0 0 .16in;font-size:19px;font-weight:600;background:#fff;border:4px solid #000;border-radius:.2in;padding:.12in .3in;width:88%}}
+.back li{{margin:.04in 0}} .back li:before{{content:"★ ";color:{acc}}}
+.back .grid{{display:grid;grid-template-columns:repeat(3,1fr);gap:.14in;width:82%}}
+.back .bt{{background:#fff;padding:.05in;border-radius:.14in;box-shadow:0 .04in .1in rgba(0,0,0,.15)}}</style>
+<div class="logo"><svg viewBox="0 0 60 60" width="28">{heart(30, 32, .7, "#ff4d6d", 5)}</svg><span>{BRAND_EN}</span></div>
+<h2>Hours of Coloring Fun!</h2>
+<p class="lead">Let your little one's imagination shine with cute, happy pictures made just for small hands and big smiles.</p>
+<ul>{"".join(f"<li>{b}</li>" for b in bullets)}</ul>
+<div class="grid">{thumbs}</div>
+</div>"""
+    css = f"@page{{size:{W_:.4f}in {H_}in;margin:0}} body{{width:{W_:.4f}in;height:{H_}in;position:relative;overflow:hidden;background:linear-gradient(170deg,{bg1},{bg2})}}"
+    return f"<style>{css}</style>" + back + front, W_, H_, spine
+
+
 def html_doc(body):
     css = CSS.replace("FONT_F", (HERE / "fonts/Fredoka.ttf").as_uri())
     return f'<!doctype html><html lang="en"><head><meta charset="utf-8"><style>{css}</style></head><body>{body}</body></html>'
@@ -256,6 +294,10 @@ def build(modname):
         kdp.append(blank_page())
     render(html_doc("".join(kdp)), d / f"{slug}-kdp-interior.pdf")
 
+    n_int = int(subprocess.run(["pdfinfo", str(d / f"{slug}-kdp-interior.pdf")], capture_output=True, text=True).stdout.split("Pages:")[1].split()[0])
+    body, cw, ch, spine = full_cover(book, n_int)
+    render(html_doc(body), d / f"{slug}-kdp-cover.pdf")
+    print(f"  KDP cover {cw:.3f} x {ch:.3f} in, spine {spine:.4f} in, interior {n_int} pages")
     render(html_doc(cover), d / "cover.pdf")
     subprocess.run(["pdftoppm", "-r", "300", "-png", "-singlefile", str(d / "cover.pdf"), str(d / f"{slug}-cover")], check=True)
     (d / "cover.pdf").unlink()
