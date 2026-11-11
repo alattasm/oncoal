@@ -13,6 +13,7 @@ All line art is pure vector, so the PDFs are sharp at any size.
 """
 import importlib, math, pathlib, subprocess, sys, shutil
 from mascot import yusuf
+YUSUF_IMG = (pathlib.Path(__file__).parent / 'mascot_src/baby-yusuf-anime.png').as_uri()
 from prims import Pal, W, H, star, heart, circle, path, line, ellipse, rect, poly, sparkle, g
 
 HERE = pathlib.Path(__file__).parent
@@ -207,8 +208,8 @@ def cover_page(book):
 .cover .tile{{background:#fff;padding:.08in;border-radius:.2in;box-shadow:0 .06in .14in rgba(0,0,0,.18)}}
 .cover .sub{{font-family:Fredoka;font-size:34px;background:{acc};color:#fff;border:4px solid #000;border-radius:999px;padding:.02in .4in .06in;margin-top:.02in}}
 .cover .en{{font-family:Fredoka;font-size:30px;letter-spacing:2px;margin-top:.05in}}
-.cover .yus{{position:absolute;left:.1in;bottom:0;width:2.75in}}
-.cover .bubble{{position:absolute;left:.3in;bottom:3.45in;font-family:Fredoka;font-weight:700;font-size:22px;line-height:1.1;text-align:center;background:#fff;border:4px solid #000;border-radius:.25in;padding:.08in .18in}}
+.cover .yus{{position:absolute;left:.05in;bottom:0;width:3.15in}}
+.cover .bubble{{position:absolute;left:.25in;bottom:4.25in;font-family:Fredoka;font-weight:700;font-size:22px;line-height:1.1;text-align:center;background:#fff;border:4px solid #000;border-radius:.25in;padding:.08in .18in}}
 .cover .bubble:after{{content:"";position:absolute;left:1.05in;bottom:-.2in;border:.1in solid transparent;border-top:.12in solid #000}}
 .cover .burst{{position:absolute;right:.35in;bottom:.45in;width:1.55in;transform:rotate(12deg)}}
 .cover .age{{position:absolute;left:.45in;top:4.55in;font-family:Fredoka;font-size:30px;background:#fff;border:4px solid #000;border-radius:.2in;padding:.06in .22in;transform:rotate(-6deg)}}
@@ -221,7 +222,7 @@ def cover_page(book):
 <div class="tiles">{tiles}</div>
 <svg class="burst" viewBox="0 0 200 200">{burst}</svg>
 <div class="age">Ages 3 - 8</div>
-<div class="yus"><svg viewBox="150 130 720 880">{yusuf(Pal(True))}</svg></div>
+<img class="yus" src="{YUSUF_IMG}">
 <div class="bubble">Let's color<br>together!</div>
 </section>"""
 
@@ -239,7 +240,7 @@ def full_cover(book, n_pages):
     front = cover_page(book).replace('<section class="page cover" style="background:linear-gradient(170deg,{0},{1});padding:.5in .55in">'.format(bg1, bg2),
         f'<section class="page cover" style="position:absolute;top:0;left:{bleed + trim_w + spine:.4f}in;width:{trim_w + bleed}in;height:{H_}in;background:transparent;padding:.6in .68in .6in .55in">')
     front = front.replace(".cover .burst{position:absolute;right:.35in;bottom:.45in", ".cover .burst{position:absolute;right:.5in;bottom:.6in")
-    front = front.replace(".cover .yus{position:absolute;left:.1in;bottom:0", ".cover .yus{position:absolute;left:.2in;bottom:0")
+    front = front.replace(".cover .yus{position:absolute;left:.05in;bottom:0", ".cover .yus{position:absolute;left:.15in;bottom:0")
     front = front.replace(".cover .age{position:absolute;left:.45in;top:4.55in", ".cover .age{position:absolute;left:.5in;top:4.7in")
     others = [fn for ar, en, fn in book["pages"] if fn.__name__ not in book["cover_pages"]][:6]
     thumbs = "".join(f'<div class="bt">{art_svg(fn, color=True, border=14)}</div>' for fn in others)
@@ -261,7 +262,7 @@ def full_cover(book, n_pages):
 <p class="lead">Let your little one's imagination shine with cute, happy pictures made just for small hands and big smiles.</p>
 <ul>{"".join(f"<li>{b}</li>" for b in bullets)}</ul>
 <div class="grid">{thumbs}</div>
-<div style="position:absolute;left:{bleed + .35}in;bottom:0;width:1.6in"><svg viewBox="150 130 720 880">{yusuf(Pal(True), crayon=False)}</svg></div>
+<img src="{YUSUF_IMG}" style="position:absolute;left:{bleed + .3}in;bottom:0;width:1.45in">
 <div style="position:absolute;left:{bleed + 1.95}in;bottom:.75in;font-family:Fredoka;font-weight:700;font-size:20px;line-height:1.15;background:#fff;border:4px solid #000;border-radius:.2in;padding:.08in .18in">Hi! I'm Yusuf.<br>Let's color together!</div>
 </div>"""
     css = f"@page{{size:{W_:.4f}in {H_}in;margin:0}} body{{width:{W_:.4f}in;height:{H_}in;position:relative;overflow:hidden;background:linear-gradient(170deg,{bg1},{bg2})}}"
