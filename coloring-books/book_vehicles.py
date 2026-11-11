@@ -50,7 +50,7 @@ def bus(c):
     a += rect(820, 520, 70, 150, 18, c("#cfeeff"))
     a += eye(220, 585, 16) + smile(220, 620, 14) + eye(390, 590, 16) + smile(390, 625, 14) + eye(560, 585, 16) + smile(560, 620, 14)
     a += path("M90,700L920,700", "none") + line("M90,690L650,690", 6)
-    a += f'<text x="370" y="800" text-anchor="middle" direction="rtl" font-family="Lalezar" font-size="80" fill="#fff" stroke="#000" stroke-width="9" paint-order="stroke" stroke-linejoin="round">باص المدرسة</text>'
+    a += f'<text x="370" y="800" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="80" fill="#fff" stroke="#000" stroke-width="9" paint-order="stroke" stroke-linejoin="round">SCHOOL BUS</text>'
     a += ellipse(900, 760, 22, 34, c("#fff3a8")) + rect(70, 840, 80, 36, 12, c("#d9dde3")) + rect(870, 840, 80, 36, 12, c("#d9dde3"))
     a += poly([(40, 560), (60, 540), (90, 540), (110, 560), (110, 590), (90, 610), (60, 610), (40, 590)], c("#ff6b6b"))
     a += wheel(260, 900, 78, c) + wheel(740, 900, 78, c)
@@ -151,7 +151,7 @@ def firetruck(c):
         a += line(f"M{x0},{560 - i * 10.9:.0f}L{x0},{600 - i * 10.9:.0f}", 7)
     a += circle(250, 740, 80, c("#ffd23f")) + circle(250, 740, 30, c("#d9dde3")) + tube("M330,740Q420,700 450,760Q470,800 520,790", 18, c("#ffd23f"))
     a += rect(420, 650, 220, 130, 16, c("#fff3a8"))
-    a += f'<text x="530" y="735" text-anchor="middle" font-family="Lalezar" font-size="58" fill="#fff" stroke="#000" stroke-width="7" paint-order="stroke">٩٩٨</text>'
+    a += f'<text x="530" y="735" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="58" fill="#fff" stroke="#000" stroke-width="7" paint-order="stroke">FIRE</text>'
     a += rect(900, 800, 60, 40, 12, c("#d9dde3")) + ellipse(910, 740, 20, 30, c("#fff3a8"))
     a += wheel(230, 900, 80, c) + wheel(560, 900, 80, c) + wheel(790, 900, 80, c)
     return o + a

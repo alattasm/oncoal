@@ -147,7 +147,7 @@ def bear(c):
     a += path("M430,860Q395,960 445,1015L555,1015Q605,960 570,860Z", c("#f2a541"))
     a += ellipse(500, 860, 82, 22, c("#ffd84d")) + path("M440,868Q445,900 458,890Q470,880 470,900Q475,915 488,900L490,870Z", c("#ffd84d"), 5)
     a += ellipse(505, 950, 48, 32, c("#fff4cc"))
-    a += f'<text x="505" y="964" text-anchor="middle" font-family="Lalezar" font-size="38" fill="#fff" stroke="#000" stroke-width="5" paint-order="stroke">عسل</text>'
+    a += f'<text x="505" y="964" text-anchor="middle" font-family="Fredoka" font-weight="700" font-size="28" fill="#fff" stroke="#000" stroke-width="5" paint-order="stroke">HONEY</text>'
     a += ellipse(395, 905, 48, 36, c(br), rot=30) + ellipse(605, 905, 48, 36, c(br), rot=-30)
     a += ellipse(500, 640, 192, 165, c(br))
     a += ellipse(500, 705, 72, 54, c("#f0c9a0"))
