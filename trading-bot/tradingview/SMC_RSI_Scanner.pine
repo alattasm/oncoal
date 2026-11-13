@@ -29,6 +29,7 @@ maxRiskAtr = input.float(6.0, "Skip if SL wider than N x ATR", group = "Strategy
 atrLen     = input.int(14, "ATR period", group = "Strategy")
 alertBuy   = input.bool(true, "Alert on BUY", group = "Alerts")
 alertSell  = input.bool(true, "Alert on SELL (exit if you hold the stock)", group = "Alerts")
+dailyRep   = input.bool(true, "Daily report: send a summary every trading day", group = "Alerts")
 c01 = input.symbol("", "Custom 1", group = "Custom list (Market list = Custom)")
 c02 = input.symbol("", "Custom 2", group = "Custom list (Market list = Custom)")
 c03 = input.symbol("", "Custom 3", group = "Custom list (Market list = Custom)")
@@ -265,8 +266,10 @@ var array<string> rBuy  = array.new_string()
 var array<string> rSell = array.new_string()
 var array<string> rLast = array.new_string()
 var array<color>  rCol  = array.new_color()
+var array<string> rWatch = array.new_string()
 string msgs = ""
 if barstate.islast
+    rWatch.clear()
     rName.clear()
     rBuy.clear()
     rSell.clear()
@@ -297,6 +300,11 @@ check(int idx, string sym, bool used, bool bSig, float bE, float bSL, float bTP,
             int ago = na(lb) ? na : bar_index - lb
             recent = not na(ago) and ago <= recentBars
             active = (not na(bP) and bP > 0) or (not na(sP) and sP > 0)
+            // close to a signal = BOS done or waiting for the FVG retrace
+            if not na(bP) and bP >= 3 and not bS
+                rWatch.push(name + " (BUY, " + phaseText(bP) + ")")
+            if not na(sP) and sP >= 3 and not sS
+                rWatch.push(name + " (SELL, " + phaseText(sP) + ")")
             if showAll or active or recent or bS or sS
                 rName.push(name)
                 rBuy.push(bS ? "BUY NOW" : phaseText(bP))
@@ -445,5 +453,11 @@ if barstate.islast
             table.cell(tb, 2, k + 1, st, text_color = st == "SELL NOW" ? color.red : color.silver, text_size = tblSize)
             table.cell(tb, 3, k + 1, rLast.get(k), text_color = rCol.get(k), text_size = tblSize)
 
-if str.length(msgs) > 0
-    alert("SMC + RSI " + preset + " (" + timeframe.period + ")\n" + msgs, alert.freq_once_per_bar_close)
+if barstate.islast
+    string head = "SMC + RSI " + preset + " (" + timeframe.period + ")\n"
+    if dailyRep
+        string body = str.length(msgs) > 0 ? "SIGNALS:\n" + msgs : "No buy/sell signal today.\n"
+        body += rWatch.size() > 0 ? "Close to a signal: " + array.join(rWatch, ", ") : "Nothing close to a signal."
+        alert(head + body, alert.freq_once_per_bar_close)
+    else if str.length(msgs) > 0
+        alert(head + msgs, alert.freq_once_per_bar_close)
