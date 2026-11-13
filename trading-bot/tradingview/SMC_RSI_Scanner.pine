@@ -1,6 +1,6 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0
 // SMC + RSI Scanner — watches up to 40 stocks with ONE alert.
-// Lists: "Saudi (Sahm)" = 40 most-traded Tadawul stocks, "US (Sahm)" = 40 popular US stocks/ETFs,
+// Lists: "Saudi (Sahm)" = 40 most-traded Tadawul stocks, "US (Sahm)" = 40 popular US stocks (NASDAQ + NYSE only),
 //        "Custom" = your own 40 (Settings -> Custom list).
 // Tip: one alert per list. Saudi list -> create the alert on a Saudi chart (e.g. TADAWUL:2222);
 //      then switch Market list to US, open a US chart (e.g. NASDAQ:AAPL) and create a second alert.
@@ -109,8 +109,8 @@ sym35 = preset == "Saudi (Sahm)" ? "TADAWUL:4001" : preset == "US (Sahm)" ? "NYS
 sym36 = preset == "Saudi (Sahm)" ? "TADAWUL:8210" : preset == "US (Sahm)" ? "NYSE:UBER" : c36  // Bupa Arabia / NYSE:UBER
 sym37 = preset == "Saudi (Sahm)" ? "TADAWUL:8010" : preset == "US (Sahm)" ? "NYSE:SHOP" : c37  // Tawuniya / NYSE:SHOP
 sym38 = preset == "Saudi (Sahm)" ? "TADAWUL:1214" : preset == "US (Sahm)" ? "NYSE:TSM" : c38  // Shaker / NYSE:TSM
-sym39 = preset == "Saudi (Sahm)" ? "TADAWUL:1834" : preset == "US (Sahm)" ? "AMEX:SPY" : c39  // SMASCO / AMEX:SPY
-sym40 = preset == "Saudi (Sahm)" ? "TADAWUL:4321" : preset == "US (Sahm)" ? "AMEX:KSA" : c40  // Arabian Centres / AMEX:KSA
+sym39 = preset == "Saudi (Sahm)" ? "TADAWUL:1834" : preset == "US (Sahm)" ? "NYSE:WFC" : c39  // SMASCO / NYSE:WFC
+sym40 = preset == "Saudi (Sahm)" ? "TADAWUL:4321" : preset == "US (Sahm)" ? "NASDAQ:QCOM" : c40  // Arabian Centres / NASDAQ:QCOM
 
 // Runs the SELL state machine. BUY = call it with the chart mirrored upside-down.
 // Returns [signal, entry, stop, target, rsiDivergence, phase]

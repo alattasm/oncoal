@@ -88,7 +88,7 @@ python scan.py --yahoo 2222.SR 1120.SR 7010.SR --kraken XBTUSD ETHUSD --tf 1d
 
 **تبي تراقب أسهم كثيرة بتنبيه واحد؟** استخدم `tradingview/SMC_RSI_Scanner.pine`: يراقب لين **40 سهم** بتنبيه واحد. من ⚙️ Settings اختار **Market list**:
 - **Saudi (Sahm)**: أكثر 40 سهم سعودي تداولاً (أرامكو، الراجحي، الأهلي، الإنماء، سابك، STC، المراعي، شاكر، سماسكو…).
-- **US (Sahm)**: 40 سهم أمريكي معروف (Apple، Nvidia، Tesla، Microsoft…) + صناديق SPY و KSA.
+- **US (Sahm)**: 40 سهم أمريكي معروف (Apple، Nvidia، Tesla، Microsoft، Wells Fargo…) — كلها من NASDAQ و NYSE، فيكفيك اشتراك بيانات هذولي الاثنين.
 - **Custom**: حط أسهمك أنت في Custom list.
 الجدول يعرض بس الأسهم اللي فيها إعداد شغّال أو إشارة حديثة (تقدر تفعّل Show all). لتنبيهين (سعودي + أمريكي): سوّ تنبيه وانت على شارت سهم سعودي و Market list = Saudi، بعدين غيّر لـ US وافتح شارت سهم أمريكي وسوّ تنبيه ثاني.
 > تنبيهات الأسهم السعودية من السكانر تحتاج اشتراك بيانات **Tadawul** الفوري في TradingView.
