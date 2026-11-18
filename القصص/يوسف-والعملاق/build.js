@@ -7,6 +7,17 @@ const A = require('./art');
 const { sky, sun, moon, stars, cloud, ground, bigMountain, farHills, palm, house, rock, stream, sheep, falcon,
   basket, dallah, finjan, yusuf, giant, mom, grandpa, villager, svg, g } = A;
 
+
+// Real illustrations: drop images/scene-01.png ... scene-20.png and images/cover.png (png/jpg/webp).
+// Any missing image falls back to the simple SVG drawing.
+const IMG_DIR = path.resolve(__dirname, 'images');
+function img(name) {
+  for (const ext of ['png', 'jpg', 'jpeg', 'webp']) {
+    const f = path.join(IMG_DIR, `${name}.${ext}`);
+    if (fs.existsSync(f)) return `<img src="file://${f}" style="width:100%;height:100%;object-fit:cover;display:block">`;
+  }
+  return null;
+}
 const FONTS = path.resolve(__dirname, '../../video/fonts');
 const OUT = path.resolve(__dirname, 'out');
 fs.mkdirSync(OUT, { recursive: true });
@@ -184,7 +195,8 @@ pages.push(`<div class="page center"><div style="font-size:22pt;font-weight:800;
   <div class="small" style="position:absolute;bottom:.9in;left:.9in;right:.9in">${TITLE}<br>${AUTHOR}<br>
   جميع الحقوق محفوظة © ${new Date().getFullYear()}<br>لا يجوز نسخ أو إعادة نشر أي جزء من هذا الكتاب دون إذن خطي من المؤلف.</div></div>`);
 
-STORY.forEach(([art, text], i) => {
+STORY.forEach(([svgArt, text], i) => {
+  const art = img(`scene-${String(i + 1).padStart(2, '0')}`) || svgArt;
   const n = pages.length + 1;
   pages.push(`<div class="page ${n % 2 ? 'odd' : 'even'}"><div class="art">${art}</div><div class="text"><p>${text}</p></div>${pageNum(n)}</div>`);
 });
@@ -207,7 +219,7 @@ fs.writeFileSync(path.join(OUT, 'interior.html'), interiorHtml);
 const PAGES = pages.length;
 const SPINE = +(PAGES * 0.002347).toFixed(4);   // premium color paper, inches per page
 const CW = 0.125 + 8.5 + SPINE + 8.5 + 0.125, CH = 8.75;
-const frontArt = svg(sky('day') + sun(830, 120, 70) + cloud(220, 110) + bigMountain(640, 900, 560, 640) + palm(90, 700, 1.1) + ground(640) +
+const frontArt = img('cover') || svg(sky('day') + sun(830, 120, 70) + cloud(220, 110) + bigMountain(640, 900, 560, 640) + palm(90, 700, 1.1) + ground(640) +
   giant(660, 760, 0.85, { mood: 'happy', arms: [-20, 160] }) + yusuf(330, 750, 1.15, { arms: [-20, 170], mood: 'happy' }));
 const frontInner = `<div style="position:absolute;inset:0">${frontArt}</div>
   <div style="position:absolute;top:.55in;left:0;right:0;text-align:center">
