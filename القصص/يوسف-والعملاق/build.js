@@ -7,7 +7,7 @@ const A = require('./art');
 const { sky, sun, moon, stars, cloud, ground, bigMountain, farHills, palm, house, rock, stream, sheep, falcon,
   basket, dallah, finjan, yusuf, giant, mom, grandpa, villager, svg, g } = A;
 
-const FONTS = path.resolve(__dirname, '../video/fonts');
+const FONTS = path.resolve(__dirname, '../../video/fonts');
 const OUT = path.resolve(__dirname, 'out');
 fs.mkdirSync(OUT, { recursive: true });
 

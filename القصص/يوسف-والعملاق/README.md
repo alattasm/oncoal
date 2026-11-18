@@ -8,7 +8,7 @@
 - `yusuf-front-cover.png`: الغلاف الأمامي بدقة 2550×2550 (300dpi)، للنسخة الإلكترونية أو Cover Creator
 
 ## إعادة البناء
-`node build.js` (يحتاج Playwright، والخطوط من `../video/fonts`)
+`node build.js` (يحتاج Playwright، والخطوط من `../../video/fonts`)
 
 ## قبل النشر
 - اكتب اسم المؤلف في `AUTHOR` داخل `build.js`، وبعدها أعد البناء
