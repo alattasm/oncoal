@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>قائمة أسعار اللحوم</title>
+<style>
+@font-face{font-family:Cairo;src:url(Cairo.ttf)}
+@font-face{font-family:Bebas;src:url(Bebas.ttf)}
+:root{--bg:#0e0b0a;--card:#1a1412;--line:#3a2a22;--gold:#e0b25b;--red:#c8372d;--txt:#f4ece4;--mut:#a8988c}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--txt);font-family:Cairo,sans-serif}
+body{background:radial-gradient(ellipse at top,#2a1a14 0%,var(--bg) 60%);padding:28px 40px}
+header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--gold);padding-bottom:12px;margin-bottom:20px}
+header h1{font-size:54px;font-weight:700;line-height:1.1}
+header .en{font-family:Bebas;font-size:58px;letter-spacing:3px;color:var(--gold);direction:ltr}
+.halal{border:3px solid var(--gold);color:var(--gold);border-radius:50%;width:110px;height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;line-height:1}
+.halal b{font-size:34px}.halal span{font-family:Bebas;font-size:26px;letter-spacing:2px;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;height:880px}
+.col{display:flex;flex-direction:column;gap:22px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 22px 10px}
+.sec h2{display:flex;justify-content:space-between;align-items:baseline;font-size:32px;color:var(--gold);border-bottom:1px solid var(--line);padding-bottom:6px;margin-bottom:4px}
+.sec h2 i{font-style:normal;font-family:Bebas;font-size:32px;letter-spacing:2px;color:var(--mut);direction:ltr}
+.row{display:flex;align-items:center;gap:10px;padding:4px 0;border-bottom:1px dashed #2c211c}
+.row:last-child{border-bottom:0}
+.nm{flex:1;line-height:1.15}
+.nm .ar{font-size:25px;font-weight:700}
+.nm .e{font-size:16px;color:var(--mut);direction:ltr;text-align:right;letter-spacing:.5px}
+.sale{background:var(--red);color:#fff;font-family:Bebas;font-size:18px;letter-spacing:1px;padding:2px 8px;border-radius:6px}
+.pr{font-family:Bebas;font-size:44px;direction:ltr;min-width:130px;text-align:left;color:var(--txt)}
+.pr small{font-size:20px;color:var(--mut);margin-left:3px}
+.pr sup{font-size:24px;color:var(--gold);vertical-align:16px;margin-right:1px}
+footer{position:absolute;bottom:18px;left:40px;right:40px;display:flex;justify-content:space-between;color:var(--mut);font-size:20px}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>لحوم حلال طازجة يومياً</h1></div>
+  <div class="halal"><b>حلال</b><span>HALAL</span></div>
+  <div class="en">FRESH HALAL MEAT</div>
+</header>
+<div class="grid" id="grid"></div>
+<footer><span>الأسعار للرطل الواحد · Prices per lb</span><span>نقطّع ونجهّز حسب طلبك · Custom cuts on request</span></footer>
+<script>
+// ===== عدّل الأسماء والأسعار هنا =====
+const MENU = [
+ [ // العمود الأول
+  {ar:"لحم بقري", en:"BEEF", items:[
+   ["ستيك ستربلوين","Striploin Steak",14.49,1],
+   ["ستيك ريب","Rib Steak",9.99,1],
+   ["روستو بقري","Beef Roast",9.99,1],
+   ["ستيك ريب بالعظم","Bone-in Rib Steak",7.99,1],
+   ["ستيك كتف","Blade Steak",9.99],
+   ["فلانك / صدر","Flank / Brisket",11.99],
+   ["روستو فخذ داخلي","Inside Round Roast",10.49],
+   ["روستو سيرلوين","Sirloin Tip Roast",10.49],
+   ["ستيك سيرلوين","Sirloin Steak",9.99],
+   ["عين الفخذ","Eye of Round",9.99],
+   ["ستيك سريع القلي","Fast-Fry Steak",9.49],
+   ["لحم مفروم","Ground Beef",6.99],
+  ]},
+ ],
+ [ // العمود الثاني
+  {ar:"غنم وماعز", en:"LAMB & GOAT", items:[
+   ["فخذ ماعز","Goat Leg",15.99],
+   ["لحم غنم قطع","Lamb Cuts",11.99],
+   ["لحم ماعز مكعبات بالعظم","Goat Cubes (bone-in)",7.99],
+   ["موزات غنم","Lamb Shank",7.49],
+  ]},
+  {ar:"مخلفات", en:"OFFAL", items:[
+   ["كبدة · كلاوي · قلوب","Liver · Kidney · Heart",5.99],
+   ["كرشة","Tripe",6.99],
+   ["شحم","Fat",6.99],
+   ["كوارع","Trotters",2.50],
+  ]},
+ ],
+ [ // العمود الثالث
+  {ar:"دجاج", en:"CHICKEN", items:[
+   ["دجاج كامل","Whole Chicken",3.59],
+   ["أرباع دجاج","Leg Quarters",2.79],
+   ["أفخاذ دجاج","Chicken Legs",5.49],
+   ["دبابيس دجاج","Drumsticks",2.99],
+   ["أجنحة دجاج","Chicken Wings",4.49,1],
+  ]},
+  {ar:"متبّلات جاهزة للشوي", en:"MARINATED", items:[
+   ["لحم ودجاج متبّل بدون عظم","Boneless Marinated",8.49],
+   ["دجاج متبّل بالعظم","Bone-in Marinated Chicken",3.99],
+  ]},
+ ],
+];
+// =====================================
+const g=document.getElementById('grid');
+for(const col of MENU){
+ const c=document.createElement('div');c.className='col';
+ for(const s of col){
+  let h=`<div class="sec"><h2>${s.ar}<i>${s.en}</i></h2>`;
+  for(const [ar,en,p,sale] of s.items){
+   const [d,cn]=p.toFixed(2).split('.');
+   h+=`<div class="row"><div class="nm"><div class="ar">${ar}</div><div class="e">${en}</div></div>${sale?'<span class="sale">SALE · عرض</span>':''}<div class="pr"><sup>$</sup>${d}.${cn}<small>/lb</small></div></div>`;
+  }
+  c.insertAdjacentHTML('beforeend',h+'</div>');
+ }
+ g.appendChild(c);
+}
+</script>
+</body>
+</html>
