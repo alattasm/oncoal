@@ -206,23 +206,21 @@ for path, k, off, spk, _ in LINES:
     i = int((shot(k) + off) * SR)
     voice[i:i + len(s)] += s[:L - i]
 
-m = load('../audio/music.wav')
-xf = int(SR * 3)
-loop = m.copy()
-while len(loop) < L:
-    fade = np.linspace(0, 1, xf)
-    loop[-xf:] = loop[-xf:] * (1 - fade) + m[:xf] * fade
-    loop = np.concatenate([loop, m[xf:]])
-music = loop[:L]
+import sys
+sys.path.insert(0, '..')
+from score_lib import build_score, hit, riser
+music = build_score(load, L, SR, [('../music/adventure.wav', 0, shot(6), 0), ('../music/action.wav', shot(6), shot(10), 0), ('../music/adventure.wav', shot(10), shot(12), 50), ('../music/finale.wav', shot(12), TOTAL, 0)])
+for t, kind in [(shot(7)-1.2, 'riser'), (shot(7)+0.1, True), (shot(8)+0.3, True), (shot(12)+0.2, False)]:
+    put(riser(SR, rng) if kind == 'riser' else hit(SR, rng, kind), t, .55)
 env = np.convolve((np.abs(voice) > .02).astype(np.float32), np.ones(int(SR * .25)) / (SR * .25), 'same')
-duck = 1 - .55 * np.clip(env * 3, 0, 1)
+duck = 1 - .42 * np.clip(env * 3, 0, 1)
 storm = np.ones(L, np.float32)                      # quieter score under the storm
 fade = np.ones(L, np.float32)
 k0, k1 = int(SR * (TOTAL - 3.5)), int(SR * TOTAL)
 fade[k0:k1] = np.linspace(1, 0, k1 - k0)
 fade[k1:] = 0
 fade[:int(SR * 1.5)] = np.linspace(0, 1, int(SR * 1.5))
-music = music / (np.abs(music).max() + 1e-6) * .4 * duck * storm * fade
+music = music / (np.abs(music).max() + 1e-6) * .58 * duck * storm * fade
 mix = (voice + music + amb * fade)[:int(SR * TOTAL)]
 mix = np.tanh(mix * 1.1) / np.tanh(1.1)
 with wave.open('build/mix.wav', 'wb') as w:

@@ -198,7 +198,7 @@ meow(shot(15) + 5.5)
 whoosh(shot(17) + 0.4)
 meow(shot(18) + 0.3)
 rain(shot(19) + 6.5, shot(23), .35)                 # day rain
-rain(shot(23), shot(27) + 0.5, .8)                  # night storm
+rain(shot(23), shot(27) + 0.5, .6)                  # night storm
 thunder(shot(23) + 0.8, 1.0)
 thunder(shot(24) + 0.6, .7)
 thunder(shot(25) + 5.5, .8)
@@ -215,25 +215,21 @@ for path, k, off, spk, _ in LINES:
     i = int((shot(k) + off) * SR)
     voice[i:i + len(s)] += s[:L - i]
 
-m = load('../audio/music.wav')
-xf = int(SR * 3)
-loop = m.copy()
-while len(loop) < L:
-    fade = np.linspace(0, 1, xf)
-    loop[-xf:] = loop[-xf:] * (1 - fade) + m[:xf] * fade
-    loop = np.concatenate([loop, m[xf:]])
-music = loop[:L]
+import sys
+sys.path.insert(0, '..')
+from score_lib import build_score, hit, riser
+music = build_score(load, L, SR, [('../music/adventure.wav', 0, shot(15), 0), ('../music/action.wav', shot(15), shot(20), 0), ('../music/storm.wav', shot(20), shot(28), 0), ('../music/adventure.wav', shot(28), TOTAL, 40)])
+for t, kind in [(shot(17)+0.3, True), (shot(16)-1.2, 'riser'), (shot(23)+0.8, True), (shot(26)-1.2, 'riser'), (shot(26)+0.2, False)]:
+    put(riser(SR, rng) if kind == 'riser' else hit(SR, rng, kind), t, .55)
 env = np.convolve((np.abs(voice) > .02).astype(np.float32), np.ones(int(SR * .25)) / (SR * .25), 'same')
-duck = 1 - .55 * np.clip(env * 3, 0, 1)
+duck = 1 - .42 * np.clip(env * 3, 0, 1)
 storm = np.ones(L, np.float32)                      # quieter score under the storm
-a, b = int(shot(23) * SR), int((shot(27) + 1) * SR)
-storm[a:b] = .45
 fade = np.ones(L, np.float32)
 k0, k1 = int(SR * (TOTAL - 3.5)), int(SR * TOTAL)
 fade[k0:k1] = np.linspace(1, 0, k1 - k0)
 fade[k1:] = 0
 fade[:int(SR * 1.5)] = np.linspace(0, 1, int(SR * 1.5))
-music = music / (np.abs(music).max() + 1e-6) * .4 * duck * storm * fade
+music = music / (np.abs(music).max() + 1e-6) * .58 * duck * storm * fade
 mix = (voice + music + amb * fade)[:int(SR * TOTAL)]
 mix = np.tanh(mix * 1.1) / np.tanh(1.1)
 with wave.open('build/mix.wav', 'wb') as w:

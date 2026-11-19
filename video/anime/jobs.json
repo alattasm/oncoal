@@ -193,5 +193,11 @@
    "10": "job_13d06cce-f5a2-4c97-9ab5-87d16845b6f5",
    "11": "job_dd22819a-466b-4f10-99e2-7f03124a4099"
   }
+ },
+ "music_v3": {
+  "adventure": "job_a4354ca5-d2c4-44ff-8416-a9f1c0d982ba",
+  "action": "job_66aa4a67-bcc8-4bde-b77f-ba298ade1faf",
+  "storm": "job_2181a0a1-c663-489f-b206-51ca37c56bb7",
+  "finale": "job_3993d6f5-bca9-4459-ae6c-e7e96b4c8b07"
  }
 }
