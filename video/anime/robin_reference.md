@@ -31,3 +31,8 @@ The blue bird in the first version was wrong. Every new image must match these r
 - The Amazon book (PDF or page images) to follow the same story
 - Real photos: eggs, rain, chicks, nest by the door
 - Do not generate images or video until the user says to start
+
+## Papa Robin vs Mama Robin
+- **Papa (male):** blacker head and a deeper, richer red-orange breast. Bolder look.
+- **Mama (female):** slightly paler: greyer-brown head and a softer orange breast.
+- Both bring worms and bugs to the babies, taking turns flying back and forth.
