@@ -1,0 +1,439 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Cairo;src:url(../fonts/Cairo.ttf);}
+@font-face{font-family:Ruqaa;src:url(../fonts/Ruqaa.ttf);}
+html,body{margin:0;background:#000;overflow:hidden}
+svg{display:block}
+text{font-family:Cairo, 'Noto Color Emoji';font-weight:800}
+</style></head>
+<body>
+<svg id="s" width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg"></svg>
+<script>
+// "Baby Youssef in the Jungle" — Episode 1. Original characters, Disney-like soft cartoon look.
+const W = 1920, H = 1080, DUR = 46;
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+const ease = x => { x = clamp(x); return 1 - Math.pow(1 - x, 3); };
+const inout = x => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+const back = x => { x = clamp(x); const c = 1.9; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const S = Math.sin, C = Math.cos, PI = Math.PI;
+const g = (x, y, s, inner, rot = 0, flip = 1) =>
+  `<g transform="translate(${x},${y}) rotate(${rot}) scale(${s * flip},${s})">${inner}</g>`;
+
+// ---------- shared defs ----------
+const DEFS = `<defs>
+ <radialGradient id="skin" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#ffe3c7"/><stop offset=".7" stop-color="#f7c49b"/><stop offset="1" stop-color="#e9a47a"/></radialGradient>
+ <radialGradient id="onesie" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#b9e3ff"/><stop offset="1" stop-color="#5aa9e6"/></radialGradient>
+ <radialGradient id="fur" cx=".4" cy=".3" r=".8"><stop offset="0" stop-color="#b9774a"/><stop offset="1" stop-color="#7a4424"/></radialGradient>
+ <radialGradient id="face" cx=".45" cy=".35" r=".8"><stop offset="0" stop-color="#ffe2c4"/><stop offset="1" stop-color="#f0b98f"/></radialGradient>
+ <radialGradient id="ele" cx=".4" cy=".3" r=".85"><stop offset="0" stop-color="#d3e0f2"/><stop offset="1" stop-color="#8ea3c4"/></radialGradient>
+ <radialGradient id="eleEar" cx=".5" cy=".5" r=".6"><stop offset="0" stop-color="#ffc6d6"/><stop offset="1" stop-color="#f49ab5"/></radialGradient>
+ <radialGradient id="balloon" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ff8a8a"/><stop offset="1" stop-color="#d81b3a"/></radialGradient>
+ <radialGradient id="sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fffbe0"/><stop offset=".45" stop-color="#ffe27a"/><stop offset="1" stop-color="#ffd25a" stop-opacity="0"/></radialGradient>
+ <linearGradient id="trunk" x1="0" x2="1"><stop offset="0" stop-color="#6b3f22"/><stop offset=".5" stop-color="#9a6238"/><stop offset="1" stop-color="#5a331b"/></linearGradient>
+ <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7ccf5a"/><stop offset="1" stop-color="#3f9a3a"/></linearGradient>
+ <linearGradient id="cap" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff8e6"/><stop offset="1" stop-color="#ffe9b8"/></linearGradient>
+ <filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="6"/></filter>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#1b3a1b" flood-opacity=".35"/></filter>
+</defs>`;
+
+// ---------- eyes (big, glossy, Disney-ish) ----------
+function eye(x, y, rx, ry, iris, lookX = 0, lookY = 0, blink = 0, lid = null) {
+  const sy = Math.max(0.06, 1 - blink);
+  return `<g transform="translate(${x},${y}) scale(1,${sy})">
+   <ellipse rx="${rx}" ry="${ry}" fill="#fff" stroke="#3a2418" stroke-width="3"/>
+   <circle cx="${lookX * rx * .35}" cy="${lookY * ry * .3 + 2}" r="${rx * .72}" fill="${iris}"/>
+   <circle cx="${lookX * rx * .35}" cy="${lookY * ry * .3 + 2}" r="${rx * .42}" fill="#1a0e08"/>
+   <circle cx="${lookX * rx * .35 - rx * .28}" cy="${lookY * ry * .3 - ry * .25}" r="${rx * .26}" fill="#fff"/>
+   <circle cx="${lookX * rx * .35 + rx * .25}" cy="${lookY * ry * .3 + ry * .22}" r="${rx * .12}" fill="#fff" opacity=".9"/>
+  </g>`;
+}
+function mouthShape(kind, w = 30) {
+  if (kind === 'open') return `<path d="M${-w},-4 Q0,${w * 1.4} ${w},-4 Q0,6 ${-w},-4Z" fill="#8a1f2b"/><path d="M${-w * .45},${w * .55} Q0,${w * .25} ${w * .45},${w * .55} Q0,${w * 1.0} ${-w * .45},${w * .55}Z" fill="#ff7b8a"/>`;
+  if (kind === 'sad') return `<path d="M${-w * .7},${w * .4} Q0,${-w * .35} ${w * .7},${w * .4}" fill="none" stroke="#5a2a1a" stroke-width="6" stroke-linecap="round"/>`;
+  if (kind === 'o') return `<ellipse rx="${w * .35}" ry="${w * .45}" fill="#8a1f2b"/>`;
+  return `<path d="M${-w},0 Q0,${w * .9} ${w},0" fill="none" stroke="#5a2a1a" stroke-width="6" stroke-linecap="round"/>`;
+}
+
+// ---------- Baby Youssef ----------
+function baby(x, y, s, o = {}) {
+  const t = o.t || 0, wave = o.wave || 0, walk = o.walk || 0, blink = o.blink || 0;
+  const bob = walk ? Math.abs(S(t * 9)) * -12 : 0;
+  const tilt = walk ? S(t * 9) * 5 : (o.tilt || 0);
+  const legL = walk ? S(t * 9) * 10 : 0;
+  const armR = wave ? -150 + S(t * 12) * 22 : (o.point ? -165 : 25 + (walk ? S(t * 9) * 15 : 0));
+  const armL = o.cheer ? 150 + S(t * 12) * 15 : (-25 - (walk ? S(t * 9) * 15 : 0));
+  const armRr = o.cheer ? -150 - S(t * 12) * 15 : armR;
+  const lx = o.lookX || 0, ly = o.lookY || 0;
+  const inner = `
+   <ellipse cx="0" cy="6" rx="90" ry="16" fill="#163a16" opacity=".22"/>
+   <g transform="translate(0,${bob}) rotate(${tilt})">
+    <ellipse cx="-36" cy="${-18 - legL}" rx="30" ry="22" fill="url(#skin)" stroke="#c98a62" stroke-width="2"/>
+    <ellipse cx="36" cy="${-18 + legL}" rx="30" ry="22" fill="url(#skin)" stroke="#c98a62" stroke-width="2"/>
+    <g transform="translate(-58,-128) rotate(${armL})"><rect x="-18" y="-6" width="36" height="78" rx="18" fill="url(#onesie)"/><circle cx="0" cy="74" r="19" fill="url(#skin)"/></g>
+    <ellipse cx="0" cy="-88" rx="74" ry="82" fill="url(#onesie)" stroke="#3f86c4" stroke-width="3"/>
+    <path d="M-60,-40 Q0,10 60,-40 Q50,-8 0,-6 Q-50,-8 -60,-40Z" fill="#fff" opacity=".9"/>
+    <path d="M0,-118 l9,19 21,3 -15,14 4,21 -19,-10 -19,10 4,-21 -15,-14 21,-3z" fill="#ffd34d" stroke="#e8a92a" stroke-width="2"/>
+    <g transform="translate(58,-128) rotate(${armRr})"><rect x="-18" y="-6" width="36" height="78" rx="18" fill="url(#onesie)"/><circle cx="0" cy="74" r="19" fill="url(#skin)"/></g>
+    <g transform="translate(0,-232)">
+      <circle cx="-94" cy="8" r="22" fill="url(#skin)"/><circle cx="94" cy="8" r="22" fill="url(#skin)"/>
+      <circle r="100" fill="url(#skin)" stroke="#d99a70" stroke-width="2"/>
+      <path d="M-70,-62 Q-40,-112 10,-102 Q60,-100 74,-56 Q40,-84 0,-80 Q-36,-80 -70,-62Z" fill="#5b3420"/>
+      <path d="M-6,-100 q-6,-34 22,-40 q26,-4 22,22 q-4,16 -18,10 q-10,-6 -2,-14" fill="none" stroke="#5b3420" stroke-width="10" stroke-linecap="round"/>
+      <path d="M-58,-38 q16,-10 30,-2" fill="none" stroke="#6b3f22" stroke-width="5" stroke-linecap="round"/>
+      <path d="M28,-40 q16,-8 30,2" fill="none" stroke="#6b3f22" stroke-width="5" stroke-linecap="round"/>
+      ${eye(-38, 0, 25, 31, '#7a4a26', lx, ly, blink)}
+      ${eye(38, 0, 25, 31, '#7a4a26', lx, ly, blink)}
+      <ellipse cx="-64" cy="42" rx="20" ry="12" fill="#ff8fa3" opacity=".55"/>
+      <ellipse cx="64" cy="42" rx="20" ry="12" fill="#ff8fa3" opacity=".55"/>
+      <ellipse cx="0" cy="30" rx="9" ry="6" fill="#e39a72"/>
+      <g transform="translate(0,52)">${mouthShape(o.mouth || 'smile', 24)}</g>
+    </g>
+   </g>`;
+  return g(x, y, s, inner, 0, o.flip || 1);
+}
+
+// ---------- Mimo the monkey ----------
+function monkey(x, y, s, o = {}) {
+  const t = o.t || 0, blink = o.blink || 0;
+  const tail = S(t * 4) * 12;
+  const armUp = o.hang ? -175 : (o.wave ? -150 + S(t * 12) * 25 : 20);
+  const armUp2 = o.hang ? 175 : (o.cheer ? 150 + S(t * 12) * 15 : -20);
+  const legsA = o.hang ? S(t * 3) * 10 : 0;
+  const inner = `
+   ${o.hang ? '' : '<ellipse cx="0" cy="6" rx="70" ry="14" fill="#163a16" opacity=".22"/>'}
+   <path d="M30,-50 q90,-10 80,-90 q-6,-50 -46,-40 q-26,8 -10,30" transform="rotate(${tail},30,-50)" fill="none" stroke="#7a4424" stroke-width="16" stroke-linecap="round"/>
+   <g transform="rotate(${legsA},0,-60)">
+    <ellipse cx="-28" cy="-16" rx="18" ry="30" fill="url(#fur)"/><ellipse cx="28" cy="-16" rx="18" ry="30" fill="url(#fur)"/>
+    <ellipse cx="-30" cy="6" rx="22" ry="11" fill="#f0b98f"/><ellipse cx="30" cy="6" rx="22" ry="11" fill="#f0b98f"/>
+   </g>
+   <g transform="translate(-44,-100) rotate(${armUp2})"><rect x="-13" y="0" width="26" height="80" rx="13" fill="url(#fur)"/><circle cx="0" cy="82" r="15" fill="#f0b98f"/></g>
+   <ellipse cx="0" cy="-72" rx="52" ry="58" fill="url(#fur)"/>
+   <ellipse cx="0" cy="-62" rx="32" ry="38" fill="#f6cfa6"/>
+   <g transform="translate(44,-100) rotate(${armUp})"><rect x="-13" y="0" width="26" height="80" rx="13" fill="url(#fur)"/><circle cx="0" cy="82" r="15" fill="#f0b98f"/></g>
+   <g transform="translate(0,-180)">
+     <circle cx="-72" cy="4" r="30" fill="url(#fur)"/><circle cx="-72" cy="4" r="17" fill="#f6cfa6"/>
+     <circle cx="72" cy="4" r="30" fill="url(#fur)"/><circle cx="72" cy="4" r="17" fill="#f6cfa6"/>
+     <circle r="70" fill="url(#fur)"/>
+     <path d="M-10,-70 q6,-24 22,-26 q-4,14 4,22" fill="#7a4424"/>
+     <path d="M-50,-4 q0,-40 30,-40 q20,0 20,16 q0,-16 20,-16 q30,0 30,40 q10,58 -50,62 q-60,-4 -50,-62z" fill="url(#face)"/>
+     ${eye(-20, -12, 17, 21, '#4a2a14', o.lookX || 0, o.lookY || 0, blink)}
+     ${eye(20, -12, 17, 21, '#4a2a14', o.lookX || 0, o.lookY || 0, blink)}
+     <ellipse cx="-6" cy="16" rx="3.5" ry="2.5" fill="#6b3f22"/><ellipse cx="6" cy="16" rx="3.5" ry="2.5" fill="#6b3f22"/>
+     <ellipse cx="-38" cy="20" rx="11" ry="7" fill="#ff8fa3" opacity=".5"/><ellipse cx="38" cy="20" rx="11" ry="7" fill="#ff8fa3" opacity=".5"/>
+     <g transform="translate(0,30)">${mouthShape(o.mouth || 'smile', 18)}</g>
+   </g>`;
+  return g(x, y, s, inner, o.rot || 0, o.flip || 1);
+}
+
+// ---------- Filo the baby elephant ----------
+function elephant(x, y, s, o = {}) {
+  const t = o.t || 0, blink = o.blink || 0;
+  const ear = S(t * 3) * 4;
+  const trunkUp = o.trunkUp || 0;
+  const tx = lerp(-10, 40, trunkUp), ty = lerp(120, -70, trunkUp);
+  const cry = o.cry ? `
+     <path d="M-44,10 q-8,20 -4,30 q8,8 12,-2 q2,-10 -8,-28z" transform="translate(0,${(t * 120) % 60})" fill="#7fd0ff" opacity="${1 - ((t * 2) % 1)}"/>
+     <path d="M44,10 q8,20 4,30 q-8,8 -12,-2 q-2,-10 8,-28z" transform="translate(0,${((t * 120) + 30) % 60})" fill="#7fd0ff" opacity="${1 - ((t * 2 + .5) % 1)}"/>` : '';
+  const bounce = o.hop ? -Math.abs(S(t * 8)) * 30 : 0;
+  const inner = `
+   <ellipse cx="0" cy="6" rx="120" ry="18" fill="#163a16" opacity=".22"/>
+   <g transform="translate(0,${bounce})">
+   <rect x="-78" y="-80" width="44" height="82" rx="20" fill="url(#ele)"/><rect x="34" y="-80" width="44" height="82" rx="20" fill="url(#ele)"/>
+   <ellipse cx="0" cy="-100" rx="110" ry="80" fill="url(#ele)"/>
+   <rect x="-60" y="-70" width="40" height="72" rx="18" fill="url(#ele)"/><rect x="20" y="-70" width="40" height="72" rx="18" fill="url(#ele)"/>
+   <g transform="translate(0,-220)">
+     <ellipse cx="-110" cy="10" rx="70" ry="80" transform="rotate(${-10 - ear},-110,10)" fill="url(#ele)"/>
+     <ellipse cx="-104" cy="12" rx="48" ry="58" transform="rotate(${-10 - ear},-104,12)" fill="url(#eleEar)"/>
+     <ellipse cx="110" cy="10" rx="70" ry="80" transform="rotate(${10 + ear},110,10)" fill="url(#ele)"/>
+     <ellipse cx="104" cy="12" rx="48" ry="58" transform="rotate(${10 + ear},104,12)" fill="url(#eleEar)"/>
+     <circle r="95" fill="url(#ele)"/>
+     <path d="M-24,40 C-30,80 ${tx - 30},${ty - 20} ${tx},${ty} C${tx + 26},${ty + 6} ${tx + 28},${ty - 12} ${tx + 16},${ty - 20} C${tx - 6},${ty - 30} 20,80 24,40Z" fill="url(#ele)" stroke="#7d92b4" stroke-width="2"/>
+     ${eye(-36, -10, 22, 27, '#3f5d8a', o.lookX || 0, o.lookY || 0, blink)}
+     ${eye(36, -10, 22, 27, '#3f5d8a', o.lookX || 0, o.lookY || 0, blink)}
+     ${o.cry ? `<path d="M-58,-46 q20,-6 34,6" fill="none" stroke="#5f7397" stroke-width="5" stroke-linecap="round"/><path d="M58,-46 q-20,-6 -34,6" fill="none" stroke="#5f7397" stroke-width="5" stroke-linecap="round"/>` : ''}
+     <ellipse cx="-62" cy="30" rx="16" ry="10" fill="#ff8fa3" opacity=".55"/><ellipse cx="62" cy="30" rx="16" ry="10" fill="#ff8fa3" opacity=".55"/>
+     <g transform="translate(-48,58)">${mouthShape(o.mouth || 'smile', 14)}</g>
+     ${cry}
+   </g></g>`;
+  return g(x, y, s, inner, 0, o.flip || 1);
+}
+
+function balloon(x, y, s, sway = 0, stringLen = 160) {
+  return g(x, y, s, `
+   <path d="M0,70 q${14 + sway},${stringLen * .3} 0,${stringLen * .55} q${-14 - sway},${stringLen * .25} 0,${stringLen * .45}" fill="none" stroke="#555" stroke-width="3"/>
+   <ellipse rx="56" ry="66" fill="url(#balloon)"/>
+   <path d="M-8,64 l16,0 -8,12z" fill="#c4122f"/>
+   <ellipse cx="-20" cy="-26" rx="12" ry="20" fill="#fff" opacity=".55" transform="rotate(-25,-20,-26)"/>`, sway * .4);
+}
+
+// ---------- scenery ----------
+function palm(x, y, s, t, hue = 0) {
+  const sw = S(t * 1.2 + x) * 3;
+  const leaf = (a, l) => `<path d="M0,0 Q${l * .5},${-l * .35} ${l},${l * .15} Q${l * .5},${-l * .05} 0,0Z" transform="rotate(${a + sw})" fill="${hue ? '#2f8f46' : '#3fae55'}" stroke="#2a7a3a" stroke-width="3"/>`;
+  return g(x, y, s, `
+   <path d="M-18,0 Q-30,-200 10,-400 L34,-400 Q0,-200 18,0Z" fill="url(#trunk)"/>
+   <g transform="translate(22,-400)">${[0, 40, 140, 180, -40, 220, 100].map((a, i) => leaf(a - 20, 190 + (i % 3) * 20)).join('')}
+     <circle cx="-6" cy="12" r="14" fill="#8a5a2b"/><circle cx="16" cy="16" r="14" fill="#7a4a20"/></g>`);
+}
+function bush(x, y, s, col = '#4cb84f') {
+  return g(x, y, s, `<circle cx="-60" cy="-30" r="50" fill="${col}"/><circle cx="0" cy="-55" r="65" fill="${col}"/><circle cx="65" cy="-30" r="50" fill="${col}"/><rect x="-110" y="-30" width="225" height="30" fill="${col}"/>
+   <circle cx="-20" cy="-70" r="18" fill="#fff" opacity=".12"/>`);
+}
+function flower(x, y, s, col, t) {
+  const r = S(t * 2 + x) * 6;
+  return g(x, y, s, `<path d="M0,0 q4,-30 0,-60" stroke="#2f8a3a" stroke-width="5" fill="none"/>
+   <g transform="translate(0,-62) rotate(${r})">${[0, 72, 144, 216, 288].map(a => `<ellipse cx="0" cy="-14" rx="10" ry="15" fill="${col}" transform="rotate(${a})"/>`).join('')}<circle r="9" fill="#ffd34d"/></g>`);
+}
+function butterfly(x, y, s, t, col = '#ff7bc0') {
+  const f = Math.abs(S(t * 18));
+  return g(x, y, s, `<ellipse cx="-14" cy="-8" rx="${16 * f + 2}" ry="18" fill="${col}"/><ellipse cx="14" cy="-8" rx="${16 * f + 2}" ry="18" fill="${col}"/>
+   <ellipse cx="-10" cy="12" rx="${10 * f + 2}" ry="11" fill="${col}" opacity=".8"/><ellipse cx="10" cy="12" rx="${10 * f + 2}" ry="11" fill="${col}" opacity=".8"/>
+   <rect x="-3" y="-20" width="6" height="40" rx="3" fill="#3a2418"/>`);
+}
+
+function jungle(t, pan = 0, mood = 'day') {
+  const sky = mood === 'dawn' ? ['#ffd6a5', '#ffb3c6', '#a8d8ff'] : mood === 'sunset' ? ['#3b2a6b', '#ff6f91', '#ffc75f'] : ['#5ec8ff', '#9fe0ff', '#e6f9ff'];
+  const sunY = mood === 'sunset' ? 760 : mood === 'dawn' ? 420 : 200;
+  let o = `<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sky[0]}"/><stop offset=".6" stop-color="${sky[1]}"/><stop offset="1" stop-color="${sky[2]}"/></linearGradient>
+   <rect width="${W}" height="${H}" fill="url(#sky)"/>
+   <circle cx="${1500 - pan * .05}" cy="${sunY}" r="260" fill="url(#sun)"/><circle cx="${1500 - pan * .05}" cy="${sunY}" r="95" fill="#fff4b8"/>`;
+  // clouds
+  for (let i = 0; i < 4; i++) {
+    const cx = ((i * 560 + t * 25 - pan * .1) % 2400 + 2400) % 2400 - 240, cy = 120 + (i % 2) * 90;
+    o += `<g opacity="${mood === 'sunset' ? .55 : .95}" transform="translate(${cx},${cy})"><ellipse rx="110" ry="38" fill="#fff"/><circle cx="-40" cy="-22" r="42" fill="#fff"/><circle cx="30" cy="-34" r="52" fill="#fff"/></g>`;
+  }
+  // far hills
+  const p1 = -pan * .2;
+  o += `<path d="M${p1 - 200},700 Q${p1 + 200},460 ${p1 + 600},650 T${p1 + 1400},620 T${p1 + 2200},640 T${p1 + 3000},620 L${p1 + 3000},1080 L${p1 - 200},1080Z" fill="${mood === 'sunset' ? '#6a4f8a' : '#8fd18a'}"/>`;
+  const p2 = -pan * .45;
+  o += `<path d="M${p2 - 200},760 Q${p2 + 300},560 ${p2 + 800},740 T${p2 + 1800},720 T${p2 + 2800},730 L${p2 + 2800},1080 L${p2 - 200},1080Z" fill="${mood === 'sunset' ? '#4f3a70' : '#5dbb5f'}"/>`;
+  // mid palms
+  const p3 = -pan * .7;
+  [[-80, 800, .9], [380, 790, .75], [1180, 800, .85], [1700, 790, .8], [2300, 800, .9], [2800, 790, .8]].forEach(([x, y, s]) => o += palm(x + p3, y, s, t, 1));
+  // ground
+  o += `<path d="M0,820 Q480,780 960,815 T1920,805 L1920,1080 L0,1080Z" fill="url(#ground)"/>
+   <path d="M0,850 Q480,820 960,850 T1920,840" stroke="#9be07a" stroke-width="6" fill="none" opacity=".5"/>`;
+  const p4 = -pan;
+  [[100, 860, .8, '#45ad4b'], [900, 850, .6, '#3ea446'], [1650, 860, .9, '#45ad4b'], [2500, 860, .8, '#3ea446']].forEach(([x, y, s, c]) => o += bush(x + p4, y, s, c));
+  [[300, 900, '#ff6fa8'], [520, 940, '#ffd34d'], [1250, 920, '#ff8f4d'], [1480, 950, '#c77dff'], [2050, 920, '#ff6fa8'], [760, 990, '#c77dff'], [1820, 1000, '#ffd34d']]
+    .forEach(([x, y, c]) => o += flower(((x + p4) % 2400 + 2400) % 2400 - 200, y, 1, c, t));
+  return o;
+}
+function foregroundLeaves(t) {
+  const sw = S(t * 1.5) * 3;
+  const big = (x, y, r, s, c) => `<g transform="translate(${x},${y}) rotate(${r + sw}) scale(${s})"><path d="M0,0 Q120,-160 300,-60 Q160,-20 0,0Z" fill="${c}"/><path d="M0,0 Q150,-90 290,-60" stroke="#1f6a2c" stroke-width="5" fill="none"/></g>`;
+  return big(-40, 1100, -40, 1.1, '#2e8b3e') + big(-60, 1080, -10, .9, '#3aa04a') + big(1960, 1100, -140, 1.1, '#2e8b3e') + big(1980, 1060, -170, .9, '#3aa04a');
+}
+function vine(x, len, t, swing = 0) {
+  return `<path d="M${x},-20 Q${x + swing * .4},${len * .5} ${x + swing},${len}" stroke="#3d8b3d" stroke-width="10" fill="none"/>
+   ${[.25, .5, .75].map(k => `<ellipse cx="${x + swing * k * k}" cy="${len * k}" rx="16" ry="9" fill="#4cb84f" transform="rotate(30,${x + swing * k * k},${len * k})"/>`).join('')}`;
+}
+function bigTree(x, y, t) {
+  return g(x, y, 1, `
+   <path d="M-70,0 Q-60,-300 -40,-520 L40,-520 Q60,-300 70,0Z" fill="url(#trunk)"/>
+   <path d="M-40,-380 Q-150,-430 -220,-520" stroke="#7a4a28" stroke-width="30" fill="none" stroke-linecap="round"/>
+   <path d="M30,-440 Q150,-500 210,-600" stroke="#7a4a28" stroke-width="28" fill="none" stroke-linecap="round"/>
+   <g transform="rotate(${S(t * 1.2) * 1.2},0,-600)">
+   <circle cx="-220" cy="-600" r="140" fill="#3aa04a"/><circle cx="0" cy="-700" r="190" fill="#45ad4b"/><circle cx="220" cy="-640" r="150" fill="#3aa04a"/>
+   <circle cx="-90" cy="-760" r="110" fill="#52bd57"/><circle cx="110" cy="-780" r="110" fill="#52bd57"/>
+   <circle cx="-120" cy="-800" r="30" fill="#fff" opacity=".1"/></g>`);
+}
+
+// ---------- overlays ----------
+function caption(text, t, a, b) {
+  const k = ease(seg(t, a, a + .4)) * (1 - ease(seg(t, b - .35, b)));
+  if (k <= 0) return '';
+  const y = 1010 + (1 - k) * 60;
+  const w = Math.min(1700, text.length * 34 + 160);
+  return `<g opacity="${k}" filter="url(#shadow)"><rect x="${960 - w / 2}" y="${y - 62}" width="${w}" height="104" rx="52" fill="url(#cap)" stroke="#f0a83a" stroke-width="5"/>
+   <text x="960" y="${y + 2}" text-anchor="middle" dominant-baseline="middle" direction="rtl" font-size="52" fill="#5a3416">${text}</text></g>`;
+}
+function iris(t, closeAt, openAt, cx = 960, cy = 540) {
+  // close over 0.45s ending at closeAt; open over 0.45s starting at openAt
+  let r = 2300;
+  if (t > closeAt - .45 && t <= closeAt) r = 2300 * (1 - inout(seg(t, closeAt - .45, closeAt)));
+  else if (t > closeAt && t < openAt) r = 0;
+  else if (t >= openAt && t < openAt + .45) r = 2300 * inout(seg(t, openAt, openAt + .45));
+  if (r >= 2300) return '';
+  return `<path fill-rule="evenodd" fill="#000" d="M-10,-10 H${W + 10} V${H + 10} H-10Z M${cx - r},${cy} a${r},${r} 0 1,0 ${2 * r},0 a${r},${r} 0 1,0 ${-2 * r},0Z"/>`;
+}
+function sparkles(t, cx, cy, n = 14, spread = 300, seed = 1) {
+  let o = '';
+  for (let i = 0; i < n; i++) {
+    const a = i * 2.4 + seed, ph = (t * .8 + i * .37) % 1;
+    const x = cx + C(a) * spread * (.4 + ph * .6), y = cy + S(a) * spread * .6 * (.4 + ph * .6) - ph * 80;
+    const s = (1 - ph) * 1.2;
+    o += `<path transform="translate(${x},${y}) scale(${s}) rotate(${t * 90 + i * 20})" d="M0,-18 L5,-5 18,0 5,5 0,18 -5,5 -18,0 -5,-5Z" fill="${['#ffd34d', '#fff', '#ff8fc8', '#8fe3ff'][i % 4]}" opacity="${1 - ph}"/>`;
+  }
+  return o;
+}
+function hearts(t, cx, cy, n = 6) {
+  let o = '';
+  for (let i = 0; i < n; i++) {
+    const ph = (t * .6 + i / n) % 1;
+    const x = cx + S(i * 3 + t * 2) * 60 + (i - n / 2) * 30, y = cy - ph * 220;
+    o += `<path transform="translate(${x},${y}) scale(${.8 + (i % 3) * .2})" d="M0,10 C-25,-10 -18,-32 0,-20 C18,-32 25,-10 0,10Z" fill="#ff5c8a" opacity="${1 - ph}"/>`;
+  }
+  return o;
+}
+function confetti(t, t0) {
+  let o = '';
+  const k = t - t0;
+  if (k < 0) return '';
+  for (let i = 0; i < 70; i++) {
+    const x = (i * 137.5) % W + S(k * 2 + i) * 40;
+    const y = -40 + ((k * (180 + (i % 7) * 30) + i * 53) % 1200);
+    o += `<rect x="${x}" y="${y}" width="14" height="22" rx="3" fill="${['#ff5c8a', '#ffd34d', '#5ec8ff', '#7ee07e', '#c77dff'][i % 5]}" transform="rotate(${k * 200 + i * 30},${x + 7},${y + 11})"/>`;
+  }
+  return o;
+}
+function rainbow(cx, cy, r, k) {
+  const cols = ['#ff5c5c', '#ffa94d', '#ffe066', '#69db7c', '#4dabf7', '#9775fa'];
+  const len = PI * r;
+  return `<g opacity=".8">${cols.map((c, i) => {
+    const rr = r - i * 22;
+    return `<path d="M${cx - rr},${cy} A${rr},${rr} 0 0 1 ${cx + rr},${cy}" fill="none" stroke="${c}" stroke-width="22" stroke-dasharray="${PI * rr}" stroke-dashoffset="${PI * rr * (1 - k)}"/>`;
+  }).join('')}</g>`;
+}
+function blinkAt(t, off = 0) { const p = (t + off) % 3.3; return p < .14 ? S(p / .14 * PI) : 0; }
+
+// ---------- the episode ----------
+function frame(t) {
+  let o = DEFS;
+  // ===== Scene 1: title (0-6) =====
+  if (t < 6.2) {
+    o += jungle(t, 0, 'dawn');
+    const k = back(seg(t, .6, 1.6));
+    o += `<g transform="translate(960,220) scale(${k})" filter="url(#shadow)">
+      <text text-anchor="middle" font-family="Ruqaa" font-size="150" fill="#fff" stroke="#e8792a" stroke-width="16" paint-order="stroke" direction="rtl">بيبي يوسف</text>
+      <text y="110" text-anchor="middle" font-size="76" fill="#2f7d32" stroke="#fff" stroke-width="12" paint-order="stroke" direction="rtl">في الغابة</text></g>`;
+    const k2 = ease(seg(t, 1.8, 2.5));
+    o += `<g opacity="${k2}"><rect x="760" y="${375 - (1 - k2) * 30}" width="400" height="74" rx="37" fill="#ffd34d" stroke="#e8a92a" stroke-width="5"/>
+      <text x="960" y="${414 - (1 - k2) * 30}" text-anchor="middle" dominant-baseline="middle" font-size="44" fill="#6b3f22" direction="rtl">الحلقة الأولى</text></g>`;
+    const by = lerp(1300, 860, back(seg(t, 2.4, 3.3)));
+    o += baby(960, by, .95, { t, wave: t > 3.2 ? 1 : 0, blink: blinkAt(t), mouth: 'open' });
+    o += sparkles(t, 960, 240, 16, 520);
+    o += foregroundLeaves(t);
+    o += iris(t, 6.0, 6.2);
+  }
+  // ===== Scene 2: Youssef walks into the jungle (6-14) =====
+  else if (t < 14.2) {
+    const k = seg(t, 6.2, 13.5);
+    const pan = k * 700;
+    o += jungle(t, pan);
+    o += butterfly(lerp(1400, 600, k) + S(t * 2) * 80, 520 + S(t * 3) * 60, 1, t);
+    o += butterfly(lerp(200, 1300, k) + C(t * 2) * 60, 440 + S(t * 2.5) * 50, .8, t + 1, '#8fe3ff');
+    const walking = t < 12.4;
+    const bx = lerp(-150, 900, ease(seg(t, 6.2, 12.4)));
+    const lookUp = t > 12.6 ? 1 : 0;
+    o += baby(bx, 900, 1, { t, walk: walking ? 1 : 0, blink: blinkAt(t), lookX: walking ? 1 : 0, lookY: lookUp ? -1 : 0, mouth: t > 12.6 ? 'o' : 'smile', wave: t > 13 ? 1 : 0 });
+    o += foregroundLeaves(t);
+    o += caption('في صباح جميل… خرج بيبي يوسف يستكشف الغابة 🌴', t, 6.6, 10.4);
+    o += caption('يا سلام! شوفوا الفراشات الملوّنة 🦋', t, 10.6, 14.0);
+    o += iris(t, 14.0, 14.2);
+  }
+  // ===== Scene 3: meets Mimo the monkey (14-22) =====
+  else if (t < 22.2) {
+    o += jungle(t, 700);
+    // pendulum swing in, then let go & land
+    const land = 17.2;
+    let mx, my, vineSwing = 0, hang = true, rot = 0;
+    if (t < land) {
+      const k = seg(t, 14.2, land);
+      const ang = lerp(1.3, -0.35, inout(k)) + S(k * PI * 2) * .15;
+      const pivot = [1350, -20], L = 520;
+      mx = pivot[0] + S(ang) * L; my = pivot[1] + C(ang) * L + 230;
+      vineSwing = S(ang) * L; rot = -ang * 50;
+      o += vine(1350, C(ang) * L, t, vineSwing);
+    } else {
+      hang = false;
+      const k = seg(t, land, land + .5);
+      mx = lerp(1350 + S(-.35) * 520, 1180, k);
+      my = lerp(-20 + C(-.35) * 520 + 230, 900, k) - S(k * PI) * 120;
+      o += vine(1350, 420, t, S(t * 3) * 20 * Math.exp(-(t - land)));
+    }
+    o += monkey(mx, my, 1, { t, hang, rot, blink: blinkAt(t, 1), wave: !hang && t > 18 ? 1 : 0, mouth: 'open', lookX: -1, flip: -1 });
+    o += baby(720, 900, 1, { t, blink: blinkAt(t), lookX: t < land ? .8 : .9, lookY: t < land ? -.8 : 0, mouth: t < land ? 'o' : 'open', wave: t > 18.3 ? 1 : 0 });
+    if (t > 18) o += hearts(t, 950, 560);
+    o += foregroundLeaves(t);
+    o += caption('مين هذا اللي يتمرجح؟! 😮', t, 14.5, 17.4);
+    o += caption('هذا صديقه القرد ميمو! 🐒 أهلاً يا يوسف!', t, 17.6, 22.0);
+    o += iris(t, 22.0, 22.2);
+  }
+  // ===== Scene 4: Filo's balloon is stuck (22-32) =====
+  else if (t < 32.2) {
+    o += jungle(t, 1100);
+    o += bigTree(1300, 860, t);
+    // balloon: stuck until 28.8, then carried down by Mimo
+    const climbA = 26.4, grab = 28.6, down = 30.6;
+    let monkeyX, monkeyY, mRot = 0, mHang = false;
+    if (t < climbA) { monkeyX = lerp(760, 1180, ease(seg(t, 22.2, 23.4))); monkeyY = 900; }
+    else if (t < grab) { const k = inout(seg(t, climbA, grab)); monkeyX = 1300 + S(t * 14) * 8; monkeyY = lerp(900, 300, k); mHang = true; }
+    else if (t < down) { monkeyX = lerp(1300, 1460, ease(seg(t, grab, grab + .5))); monkeyY = lerp(300, 330, seg(t, grab, down)); mHang = true; }
+    else { const k = ease(seg(t, down, down + 1.1)); monkeyX = lerp(1460, 1070, k); monkeyY = lerp(330, 900, k) - S(k * PI) * 60; mHang = k < .9; }
+    const bStuckX = 1480, bStuckY = 140;
+    let bx = bStuckX + S(t * 5) * 6, by = bStuckY;
+    if (t >= grab) { bx = monkeyX + 50; by = monkeyY - 260; }
+    o += balloon(bx, by, 1, S(t * 3) * 6);
+    const happy = t > down + .9;
+    o += elephant(1720, 910, .95, { t, blink: blinkAt(t, 2), cry: !happy, mouth: happy ? 'open' : 'sad', lookX: -.4, lookY: happy ? 0 : -1, flip: -1, trunkUp: happy ? .6 : 0, hop: happy ? 1 : 0 });
+    o += monkey(monkeyX, monkeyY, .9, { t, hang: mHang, blink: blinkAt(t, 1), mouth: t > grab ? 'open' : 'smile', lookX: 1, lookY: mHang ? -1 : 0, flip: -1 });
+    const point = t > 24 && t < climbA + .4;
+    o += baby(560, 900, 1, { t, blink: blinkAt(t), point, lookX: .6, lookY: t > climbA ? -1 : 0, mouth: t > grab ? 'open' : (t > 23.5 ? 'o' : 'smile'), cheer: t > down + .8 });
+    if (t > grab && t < grab + 1.2) o += sparkles(t, bx, by, 12, 140, 3);
+    o += foregroundLeaves(t);
+    o += caption('أوه! الفيل الصغير فيلو يبكي… بالونه علق في الشجرة 🎈', t, 22.4, 26.2);
+    o += caption('ميمو، تقدر تساعده؟ … ميمو تسلّق الشجرة بسرعة!', t, 26.4, 29.8);
+    o += caption('وجاب البالون لفيلو! 🎉', t, 30.0, 32.0);
+    o += iris(t, 32.0, 32.2, 1100, 600);
+  }
+  // ===== Scene 5: celebration (32-40) =====
+  else if (t < 40.2) {
+    o += jungle(t, 1100);
+    o += rainbow(960, 800, 640, ease(seg(t, 32.6, 34.2)));
+    const sprayK = seg(t, 33, 35);
+    o += elephant(1380, 900, 1.05, { t, blink: blinkAt(t, 2), mouth: 'open', trunkUp: 1, hop: 1, flip: -1, lookX: -.5 });
+    if (sprayK > 0) {
+      // water fountain from trunk
+      for (let i = 0; i < 26; i++) {
+        const ph = (t * 1.4 + i / 26) % 1;
+        const x = 1330 + (-ph * 420) + S(i) * 20, y = 520 - S(ph * PI) * 280 + ph * 120;
+        o += `<circle cx="${x}" cy="${y}" r="${10 - ph * 5}" fill="#7fd0ff" opacity="${.85 * (1 - ph)}"/>`;
+      }
+    }
+    o += balloon(1500 + S(t * 2) * 10, 380 - Math.abs(S(t * 8)) * 30, .9, S(t * 3) * 6, 240);
+    o += monkey(960, 900 - Math.abs(S(t * 8 + 1)) * 40, 1, { t, blink: blinkAt(t, 1), cheer: 1, hang: false, mouth: 'open' });
+    o += baby(580, 900 - Math.abs(S(t * 8)) * 34, 1.05, { t, blink: blinkAt(t), cheer: 1, mouth: 'open' });
+    o += confetti(t, 32.4);
+    o += sparkles(t, 960, 450, 16, 600, 5);
+    o += foregroundLeaves(t);
+    o += caption('صار فيلو فرحان… وصاروا كلهم أصحاب! 🐘🐒👶', t, 32.6, 36.2);
+    o += caption('تعلّمنا اليوم: التعاون يخلّينا أقوى! 💛', t, 36.4, 40.0);
+    o += iris(t, 40.0, 40.2);
+  }
+  // ===== Scene 6: sunset end card (40-46) =====
+  else {
+    o += jungle(t, 1100, 'sunset');
+    o += baby(760, 900, 1, { t, blink: blinkAt(t), wave: 1, mouth: 'open' });
+    o += monkey(1000, 900, .9, { t, blink: blinkAt(t, 1), wave: 1, mouth: 'open', hang: false });
+    o += elephant(1260, 905, .85, { t, blink: blinkAt(t, 2), mouth: 'open', trunkUp: .8, flip: -1 });
+    const k = back(seg(t, 40.5, 41.4));
+    o += `<g transform="translate(960,260) scale(${k})" filter="url(#shadow)">
+      <text text-anchor="middle" font-size="96" fill="#fff" stroke="#c2185b" stroke-width="14" paint-order="stroke" direction="rtl">انتظرونا في الحلقة الجاية!</text>
+      <text y="100" text-anchor="middle" font-size="54" fill="#ffe66d" stroke="#5a2a6b" stroke-width="10" paint-order="stroke" direction="rtl">مع السلامة يا أصحاب 👋</text></g>`;
+    o += sparkles(t, 960, 260, 18, 640, 7);
+    o += foregroundLeaves(t);
+    const f = seg(t, 45, 46);
+    if (f > 0) o += `<rect width="${W}" height="${H}" fill="#000" opacity="${f}"/>`;
+  }
+  return o;
+}
+const svg = document.getElementById('s');
+window.render = t => { svg.innerHTML = frame(t); };
+window.DUR = DUR;
+render(Number(new URLSearchParams(location.search).get('t') || 3.5));
+</script>
+</body></html>
