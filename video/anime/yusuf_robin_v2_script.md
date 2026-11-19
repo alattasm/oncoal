@@ -17,7 +17,7 @@
 - **Nest:** inside a brown woven wicker planter full of purple-and-yellow pansies and tall thin grass, right next to the front door, beside a white porch railing, brick wall behind.
 - **Cardboard:** a brown cardboard sheet propped behind the planter as the rain roof, exactly like the real video.
 - **Babies:** pink and featherless at hatching, then fluffy grey-brown with speckled orange breasts.
-- **Mama and Baba:** gentle anime parents. Option: show them only partly (hands, from behind) if the family prefers.
+- **Mama and Baba:** drawn fully as anime characters in the same style as Yusuf (decided by the family). Look details (hair, hijab, beard, glasses, clothes) to be confirmed by the family; keep them identical in every shot.
 
 ## Shot list
 
