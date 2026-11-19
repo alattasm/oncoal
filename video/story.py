@@ -1,4 +1,4 @@
-"""OnCoal story reel (1080x1920, 30 fps): a family of five's first visit, half lamb mandi / half grilled chicken platter.
+"""OnCoal story reel (1080x1920, 30 fps): a family of five's first visit, lamb mandi (2 portions) + grilled chicken on one platter.
 
 Usage:  python3 story.py            -> renders oncoal_family_story_nomusic.mp4
         python3 story.py 3 12.5 ... -> saves preview stills to $PREVIEW_DIR (default /tmp)
@@ -210,15 +210,15 @@ T_LINES = [
     (text_img('ORDER  #001', bebas(80), INK, shadow=False), 90),
     (text_img('TABLE OF 5  ·  FIRST VISIT', mont(30), (150, 110, 80), shadow=False), 165),
     (None, 215),
-    (text_img('½  لحم مندي', cairo(66, 'Black'), INK, rtl=True, shadow=False), 300),
-    (text_img('HALF LAMB MANDI', mont(30), (150, 110, 80), shadow=False), 370),
-    (text_img('½  دجاج شواية', cairo(66, 'Black'), INK, rtl=True, shadow=False), 470),
-    (text_img('HALF GRILLED CHICKEN', mont(30), (150, 110, 80), shadow=False), 540),
+    (text_img('نفرين لحم مندي', cairo(66, 'Black'), INK, rtl=True, shadow=False), 300),
+    (text_img('LAMB MANDI · FOR 2', mont(30), (150, 110, 80), shadow=False), 370),
+    (text_img('دجاج شواية', cairo(66, 'Black'), INK, rtl=True, shadow=False), 470),
+    (text_img('GRILLED CHICKEN', mont(30), (150, 110, 80), shadow=False), 540),
     (None, 600),
-    (text_img('صحن عائلي كبير · نص بنص', cairo(52, 'Bold'), (200, 90, 30), rtl=True, shadow=False), 680),
+    (text_img('كله في صحن عائلي كبير', cairo(52, 'Bold'), (200, 90, 30), rtl=True, shadow=False), 680),
     (text_img('ONE BIG FAMILY PLATTER', mont(32), (200, 90, 30), shadow=False), 750),
 ]
-order_cap = caption('الطلب وصل المطبخ', 'Order in. Coals ready.')
+order_cap = caption('الطلب وصل المطبخ', 'Order in!')
 
 # platter
 def platter(d=820):
@@ -246,7 +246,7 @@ steam_puff = Image.new('RGBA', (220, 220)); sm = Image.new('L', (220, 220)); Ima
 steam_puff.paste(Image.new('RGBA', (220, 220), (255, 250, 240, 255)), mask=sm.filter(ImageFilter.GaussianBlur(28)))
 lab_l = (ar('لحم مندي', 58, CREAM, 'Black'), en('LAMB MANDI', 30, GOLD))
 lab_r = (ar('دجاج شواية', 58, CREAM, 'Black'), en('GRILLED CHICKEN', 30, GOLD))
-plat_cap = caption('صحن كبير… نص لحم ونص دجاج', 'One big platter. Half & half.')
+plat_cap = caption('كله في صحن واحد كبير', 'All on one big platter.')
 
 # family at the table
 def bubble(lines, flip=False):
