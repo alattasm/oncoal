@@ -53,5 +53,9 @@
   "14": "https://ai-thumbnails.s3.amazonaws.com/editor/301bd6f2-5941-440f-98e1-deea921a69e2/cc06cc00-741c-49ee-89ac-cdc833fe4fd7.jpeg",
   "15": "https://ai-thumbnails.s3.amazonaws.com/editor/301bd6f2-5941-440f-98e1-deea921a69e2/23e6d671-c3ea-489b-b8fc-1a4d37739fff.jpeg",
   "16": "https://ai-thumbnails.s3.amazonaws.com/editor/301bd6f2-5941-440f-98e1-deea921a69e2/168ee201-feb3-428f-b2f7-709993ed3233.jpeg"
+ },
+ "v2": {
+  "family_A": "job_da499c42-c9a5-472b-9f28-a51be84a6208",
+  "family_B": "job_537db753-538d-4707-b55f-a58fa2c3c613"
  }
 }
