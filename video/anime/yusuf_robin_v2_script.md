@@ -58,10 +58,10 @@
 
 | Step | What happens | Credits |
 |---|---|---|
-| 8 | 1 test keyframe (Mama Robin on blue eggs in the pansy pot by the door), user checks colors | 22 |
-| 9 | Remaining 19 keyframes, user approves each, redo any for 22 | ~420 |
-| 10 | 20 video clips (60 each), only after all images are approved | ~1,200 |
-| 11 | Voices (Yusuf, narrator, Mama/Baba lines) | ~60 |
+| 1 | 1 test keyframe (Mama Robin on blue eggs in the pansy pot by the door), user checks colors | 22 |
+| 2 | Remaining 26 keyframes, user approves each, redo any for 22 | ~570 |
+| 3 | 27 video clips (60 each), only after all images are approved | ~1,620 |
+| 4 | Voices (Yusuf, narrator, Mama/Baba lines), plus rain and thunder SFX made for free | ~70 |
 | | Music: reuse the existing score | 0 |
 | | **Total** | **~2,300** |
 
