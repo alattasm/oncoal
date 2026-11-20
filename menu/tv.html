@@ -29,6 +29,13 @@ header{display:flex;align-items:center;justify-content:space-between;height:104p
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;height:860px}
 .grid.r3{grid-template-rows:repeat(3,1fr)}
 .grid.r2{grid-template-rows:repeat(2,1fr)}
+.grid.r1{grid-template-rows:1fr}
+.r1 .nm .ar{font-size:40px}.r1 .nm .e{font-size:22px}.r1 .pr{font-size:76px}.r1 .pr sup{font-size:32px;vertical-align:34px}.r1 .info{padding:10px 24px 22px}
+.feat{background-size:cover;background-position:center;justify-content:flex-end;padding:0}
+.feat .ov{background:linear-gradient(180deg,rgba(18,13,11,0) 0%,rgba(18,13,11,.92) 55%);padding:120px 26px 30px;text-align:center}
+.feat .ov b{display:block;font-size:52px;color:var(--yel);line-height:1.2}
+.feat .ov p{font-size:28px;font-weight:700;margin-top:6px}
+.feat .ov i{display:block;font-style:normal;font-family:Bebas;font-size:28px;letter-spacing:4px;color:var(--gold);margin-top:10px;direction:ltr}
 .card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 12px 26px rgba(0,0,0,.5);display:flex;flex-direction:column}
 .ph{flex:1;background-size:cover;background-position:center;position:relative}
 .ph::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(29,22,19,.95) 100%)}
@@ -67,7 +74,17 @@ footer .mid{color:var(--gold);font-weight:700}
 <script>
 // ===== عدّل الأسماء والأسعار والصور هنا ===== [عربي, English, السعر, صورة, عرض؟]
 const SLIDES=[
- {ar:"لحم بقري",en:"BEEF",rows:3,items:[
+ {ar:"غنم وماعز",en:"LAMB & GOAT",rows:2,cols:4,items:[
+  ["فخذ ماعز","Goat Leg",15.99,"goatleg"],
+  ["لحم غنم قطع","Lamb Cuts",11.99,"lambcuts"],
+  ["مكعبات ماعز","Goat Cubes (bone-in)",7.99,"goatcubes"],
+  ["موزات غنم","Lamb Shank",7.49,"shank"],
+  ["كبدة وكلاوي","Liver · Kidney · Heart",5.99,"liver",0,"مخلفات"],
+  ["كرشة","Tripe",6.99,"tripe",0,"مخلفات"],
+  ["شحم","Fat",6.99,"fat",0,"مخلفات"],
+  ["كوارع","Trotters",2.50,"trotters",0,"مخلفات"],
+ ]},
+ {ar:"عجل وبقري",en:"VEAL & BEEF",rows:3,cols:4,items:[
   ["ستيك ستربلوين","Striploin Steak",14.49,"striploin",1],
   ["ستيك ريب","Rib Steak",9.99,"rib",1],
   ["روستو بقري","Beef Roast",9.99,"roast",1],
@@ -81,25 +98,18 @@ const SLIDES=[
   ["ستيك سريع القلي","Fast-Fry Steak",9.49,"fastfry"],
   ["لحم مفروم","Ground Beef",6.99,"ground"],
  ]},
- {ar:"غنم وماعز · مخلفات",en:"LAMB · GOAT · OFFAL",rows:2,items:[
-  ["فخذ ماعز","Goat Leg",15.99,"goatleg",0,"غنم وماعز"],
-  ["لحم غنم قطع","Lamb Cuts",11.99,"lambcuts",0,"غنم وماعز"],
-  ["مكعبات ماعز","Goat Cubes (bone-in)",7.99,"goatcubes",0,"غنم وماعز"],
-  ["موزات غنم","Lamb Shank",7.49,"shank",0,"غنم وماعز"],
-  ["كبدة وكلاوي","Liver · Kidney · Heart",5.99,"liver",0,"مخلفات"],
-  ["كرشة","Tripe",6.99,"tripe",0,"مخلفات"],
-  ["شحم","Fat",6.99,"fat",0,"مخلفات"],
-  ["كوارع","Trotters",2.50,"trotters",0,"مخلفات"],
- ]},
- {ar:"دجاج · متبّلات",en:"CHICKEN · MARINATED",rows:2,items:[
-  ["دجاج كامل","Whole Chicken",3.59,"whole",0,"دجاج"],
-  ["أرباع دجاج","Leg Quarters",2.79,"quarters",0,"دجاج"],
-  ["أفخاذ دجاج","Chicken Legs",5.49,"legs",0,"دجاج"],
-  ["دبابيس دجاج","Drumsticks",2.99,"drum",0,"دجاج"],
-  ["أجنحة دجاج","Chicken Wings",4.49,"wings",1,"دجاج"],
-  ["متبّل بدون عظم","Boneless Marinated",8.49,"marcubes",0,"جاهز للشوي 🔥"],
-  ["دجاج متبّل بالعظم","Bone-in Marinated",3.99,"marbone",0,"جاهز للشوي 🔥"],
+ {ar:"دجاج طازج",en:"FRESH CHICKEN",rows:2,cols:3,items:[
+  ["دجاج كامل","Whole Chicken",3.59,"whole"],
+  ["أرباع دجاج","Leg Quarters",2.79,"quarters"],
+  ["أفخاذ دجاج","Chicken Legs",5.49,"legs"],
+  ["دبابيس دجاج","Drumsticks",2.99,"drum"],
+  ["أجنحة دجاج","Chicken Wings",4.49,"wings",1],
   "PROMO",
+ ]},
+ {ar:"دجاج متبّل",en:"MARINATED CHICKEN",rows:1,cols:3,items:[
+  ["دجاج متبّل بالعظم","Bone-in Marinated",3.99,"marbone_tall",0,"جاهز للشوي 🔥"],
+  ["متبّل بدون عظم","Boneless Marinated",8.49,"marcubes_tall",0,"جاهز للشوي 🔥"],
+  "FEATURE",
  ]},
 ];
 // =============================================
@@ -110,7 +120,8 @@ document.getElementById('sect').innerHTML=`<b>${S.ar}</b><i>${S.en}</i>`;
 document.getElementById('dots').innerHTML=SLIDES.map((_,i)=>`<u class="${i==n-1?'on':''}"></u>`).join('');
 const price=p=>{const [d,c]=p.toFixed(2).split('.');return `<sup>$</sup>${d}.${c}<small>/lb</small>`};
 const burst=`<div class="burst"><svg viewBox="0 0 100 100"><polygon points="${star(16,50,41)}" fill="#ffd23f"/><polygon points="${star(16,45,37)}" fill="#d3322a"/></svg><span>عرض<i>SALE</i></span></div>`;
-document.getElementById('main').innerHTML=`<div class="grid r${S.rows}">`+S.items.map(it=>{
+document.getElementById('main').innerHTML=`<div class="grid r${S.rows}" style="grid-template-columns:repeat(${S.cols},1fr)">`+S.items.map(it=>{
+ if(it==="FEATURE")return `<div class="card feat" style="background:url(items/mardrum_tall.jpg) center/cover"><div class="ov"><b>جاهز للشوي 🔥</b><p>تتبيلات طازجة يومياً<br>اسأل عن الأنواع المتوفرة</p><i>READY TO GRILL</i></div></div>`;
  if(it==="PROMO")return `<div class="card promo"><div class="t">اطلب تقطيعك<br>على كيفك</div><div class="s">CUT · GRIND · MARINATE</div><div class="chips"><span>تقطيع</span><span>فرم</span><span>تتبيل</span><span>تغليف</span></div></div>`;
  const [ar,en,p,img,sale,cat]=it;
  return `<div class="card${sale?' hot':''}"><div class="ph" style="background-image:url(items/${img}.jpg)">${cat?`<div class="cat">${cat}</div>`:''}</div>${sale?burst:''}<div class="info"><div class="nm"><div class="ar">${ar}</div><div class="e">${en}</div></div><div class="pr">${price(p)}</div></div></div>`;
