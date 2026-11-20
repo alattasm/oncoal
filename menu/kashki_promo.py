@@ -136,7 +136,7 @@ SEGS = [
  ('photo', (f'{UP}/79be129e-image.jpg', (0, 640, 1990, 1760)), 4.5, ('دجاج طازج', 'FRESH CHICKEN'), [('دجاج كامل', '$3.59', 0), ('أجنحة دجاج', '$4.49', 1)]),
  ('video', (f'{UP}/ce006880-IMG_2013.mov', 1.0), 4.0, ('دجاج متبّل', 'MARINATED'), [('دجاج متبّل بالعظم', '$3.99', 0)], False),
  ('video', (f'{UP}/1f983b78-IMG_2014.mov', 0.0), 4.0, ('دجاج متبّل', 'MARINATED'), [('متبّل بدون عظم', '$8.49', 0)], False),
- ('video', (f'{UP}/3bb8fd10-IMG_2015.mov', 0.5), 4.0, ('جاهز للشوي 🔥', 'READY TO GRILL'), [], False),
+ ('video', (f'{UP}/3bb8fd10-IMG_2015.mov', 0.5), 4.0, ('جاهز للشوي', 'READY TO GRILL'), [], False),
  ('photo', (f'{UP}/68f25c4a-image.jpg', (0, 300, 1512, 1150)), 4.0, ('جاهز للشوي', 'READY TO GRILL'), [], False),
  ('title_out', None, 7.0, None, []),
 ]
