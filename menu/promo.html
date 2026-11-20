@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>عروض اللحوم</title>
+<style>
+@font-face{font-family:Cairo;src:url(Cairo.ttf)}
+@font-face{font-family:Bebas;src:url(Bebas.ttf)}
+:root{--bg:#120d0b;--card:#1d1613;--line:#3d2c23;--gold:#f0c060;--gold2:#b8862f;--red:#d3322a;--yel:#ffd23f;--txt:#fff6ec;--mut:#b3a191}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;color:var(--txt);font-family:Cairo,sans-serif}
+body{background:
+  radial-gradient(ellipse 70% 60% at 50% 0%,rgba(190,60,30,.28),transparent 70%),
+  repeating-linear-gradient(135deg,rgba(255,255,255,.018) 0 2px,transparent 2px 14px),
+  var(--bg);position:relative;padding:22px 36px}
+/* gold frame + corner ornaments */
+.frame{position:absolute;inset:12px;border:2px solid rgba(240,192,96,.35);border-radius:22px;pointer-events:none}
+.corner{position:absolute;width:70px;height:70px;border:5px solid var(--gold);pointer-events:none}
+.corner.tl{top:8px;left:8px;border-right:0;border-bottom:0;border-radius:22px 0 0 0}
+.corner.tr{top:8px;right:8px;border-left:0;border-bottom:0;border-radius:0 22px 0 0}
+.corner.bl{bottom:8px;left:8px;border-right:0;border-top:0;border-radius:0 0 0 22px}
+.corner.br{bottom:8px;right:8px;border-left:0;border-top:0;border-radius:0 0 22px 0}
+
+header{display:flex;align-items:center;justify-content:space-between;height:120px;margin-bottom:14px}
+.ribbon{position:relative;background:linear-gradient(180deg,#e0453a,#a51f18);padding:6px 70px 10px;clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%,4% 50%);box-shadow:0 8px 0 #5c0f0b}
+.ribbon h1{font-size:58px;font-weight:700;line-height:1.25;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.tag{font-family:Bebas;font-size:54px;letter-spacing:4px;color:var(--gold);direction:ltr;line-height:.95;text-align:left}
+.tag small{display:block;font-size:26px;letter-spacing:6px;color:var(--mut)}
+.seal{width:116px;height:116px;position:relative;display:flex;align-items:center;justify-content:center}
+.seal svg{position:absolute;inset:0}
+.seal div{position:relative;text-align:center;color:#1a1208;font-weight:700;line-height:1}
+.seal b{font-size:32px;display:block}.seal span{font-family:Bebas;font-size:20px;letter-spacing:2px}
+
+/* section card with photo banner */
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 14px 30px rgba(0,0,0,.45);display:flex;flex-direction:column}
+.ban{position:relative;height:150px;background-size:cover;background-position:center}
+.ban::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05) 30%,rgba(29,22,19,1) 100%)}
+.ban .lbl{position:absolute;z-index:2;bottom:12px;right:0;background:linear-gradient(90deg,var(--gold2),var(--gold));color:#1a1208;padding:2px 28px 4px 40px;clip-path:polygon(0 0,100% 0,100% 100%,0 100%,22px 50%);display:flex;align-items:baseline;gap:14px}
+.ban .lbl b{font-size:36px;font-weight:700}
+.ban .lbl i{font-style:normal;font-family:Bebas;font-size:28px;letter-spacing:2px;opacity:.75;direction:ltr}
+.list{padding:6px 22px 10px;flex:1;display:flex;flex-direction:column;justify-content:space-around}
+.row{display:flex;align-items:center;gap:10px;padding:3px 0;border-bottom:1px dashed #33261f}
+.row:last-child{border-bottom:0}
+.nm{flex:1;line-height:1.12}
+.nm .ar{font-size:26px;font-weight:700}
+.nm .e{font-size:16px;color:var(--mut);direction:ltr;text-align:right;letter-spacing:.5px}
+.dots{flex:0 0 40px;border-bottom:3px dotted #5a4434;margin-bottom:8px;align-self:flex-end}
+.pr{font-family:Bebas;font-size:46px;direction:ltr;min-width:136px;text-align:left}
+.pr small{font-size:20px;color:var(--mut);margin-left:3px}
+.pr sup{font-size:24px;color:var(--gold);vertical-align:18px}
+.sale-pill{background:var(--red);color:#fff;font-size:17px;font-weight:700;padding:0 10px;border-radius:20px;transform:rotate(-4deg)}
+.row.hot .pr{color:var(--yel)}
+
+/* starburst */
+.burst{position:relative;display:flex;align-items:center;justify-content:center;text-align:center}
+.burst svg{position:absolute;inset:0;width:100%;height:100%;filter:drop-shadow(0 10px 14px rgba(0,0,0,.55))}
+.burst .in{position:relative;line-height:1;color:#fff}
+.burst .in .k{font-size:22px;font-weight:700;background:#1a1208;color:var(--yel);padding:1px 12px;border-radius:12px;display:inline-block;margin-bottom:4px}
+.burst .in .p{font-family:Bebas;font-size:78px;direction:ltr;text-shadow:0 4px 0 rgba(0,0,0,.3)}
+.burst .in .p sup{font-size:34px;vertical-align:36px}
+.burst .in .p small{font-size:26px}
+.burst .in .n{font-size:24px;font-weight:700;margin-top:2px}
+
+footer{position:absolute;bottom:22px;left:44px;right:44px;display:flex;justify-content:space-between;align-items:center;color:var(--mut);font-size:21px}
+footer .mid{color:var(--gold);font-weight:700}
+
+/* slide 1 layout */
+.s1{display:grid;grid-template-columns:780px 1fr;gap:30px;height:850px}
+.hero{position:relative;border-radius:20px;overflow:hidden;background:url(img/beef2.jpg) center/cover;box-shadow:0 14px 30px rgba(0,0,0,.45)}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,13,11,.85) 0%,rgba(18,13,11,.35) 40%,rgba(18,13,11,.9) 100%)}
+.hero h2{position:absolute;top:22px;right:0;left:0;text-align:center;font-size:62px;font-weight:700;color:var(--yel);text-shadow:0 4px 0 #5c0f0b}
+.hero h2 span{display:block;font-family:Bebas;font-size:34px;letter-spacing:8px;color:#fff;margin-top:-6px}
+.hero .b{position:absolute}
+.s1 .card .list .row{padding:2px 0}
+/* slide 2 layout */
+.s2{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;height:850px}
+.stack{display:flex;flex-direction:column;gap:22px}
+.stack .card{flex:1}
+.flame{position:absolute;z-index:3;top:4px;left:14px}
+.s2 .list{justify-content:space-evenly;padding-top:8px}
+.s2 .row{padding:5px 0}
+.stack{height:850px;min-height:0}.stack .card{min-height:0}
+</style>
+</head>
+<body>
+<div class="frame"></div><div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+<header>
+  <div class="ribbon"><h1>لحوم حلال طازجة يومياً</h1></div>
+  <div class="seal">
+    <svg viewBox="0 0 100 100"><polygon id="sealp" fill="#f0c060" stroke="#b8862f" stroke-width="2"/></svg>
+    <div><b>حلال</b><span>HALAL</span></div>
+  </div>
+  <div class="tag">FRESH HALAL MEAT<small>BUTCHER · ملحمة</small></div>
+</header>
+<main id="main"></main>
+<footer><span>الأسعار للرطل الواحد · Prices per lb</span><span class="mid">★ نقطّع ونفرم ونجهّز حسب طلبك ★</span><span>Custom cuts on request</span></footer>
+
+<script>
+// ===== عدّل الأسماء والأسعار هنا ===== [عربي, English, السعر, عرض؟]
+const BEEF=[
+ ["ستيك ستربلوين","Striploin Steak",14.49,1],
+ ["ستيك ريب","Rib Steak",9.99,1],
+ ["روستو بقري","Beef Roast",9.99,1],
+ ["ستيك ريب بالعظم","Bone-in Rib Steak",7.99,1],
+ ["ستيك كتف","Blade Steak",9.99],
+ ["فلانك / صدر","Flank / Brisket",11.99],
+ ["روستو فخذ داخلي","Inside Round Roast",10.49],
+ ["روستو سيرلوين","Sirloin Tip Roast",10.49],
+ ["ستيك سيرلوين","Sirloin Steak",9.99],
+ ["عين الفخذ","Eye of Round",9.99],
+ ["ستيك سريع القلي","Fast-Fry Steak",9.49],
+ ["لحم مفروم","Ground Beef",6.99],
+];
+const LAMB=[["فخذ ماعز","Goat Leg",15.99],["لحم غنم قطع","Lamb Cuts",11.99],["لحم ماعز مكعبات بالعظم","Goat Cubes (bone-in)",7.99],["موزات غنم","Lamb Shank",7.49]];
+const OFFAL=[["كبدة · كلاوي · قلوب","Liver · Kidney · Heart",5.99],["كرشة","Tripe",6.99],["شحم","Fat",6.99],["كوارع","Trotters",2.50]];
+const CHICKEN=[["دجاج كامل","Whole Chicken",3.59],["أرباع دجاج","Leg Quarters",2.79],["أفخاذ دجاج","Chicken Legs",5.49],["دبابيس دجاج","Drumsticks",2.99],["أجنحة دجاج","Chicken Wings",4.49,1]];
+const MARI=[["لحم ودجاج متبّل بدون عظم","Boneless Marinated",8.49],["دجاج متبّل بالعظم","Bone-in Marinated Chicken",3.99]];
+// =====================================
+
+function star(n,ro,ri){let p=[];for(let i=0;i<n*2;i++){const r=i%2?ri:ro,a=Math.PI*i/n-Math.PI/2;p.push((50+r*Math.cos(a)).toFixed(2)+','+(50+r*Math.sin(a)).toFixed(2))}return p.join(' ')}
+document.getElementById('sealp').setAttribute('points',star(24,49,43));
+const price=p=>{const [d,c]=p.toFixed(2).split('.');return `<sup>$</sup>${d}.${c}`};
+function rows(a){return a.map(([ar,en,p,s])=>`<div class="row${s?' hot':''}"><div class="nm"><div class="ar">${ar}</div><div class="e">${en}</div></div>${s?'<span class="sale-pill">عرض</span>':''}<div class="pr">${price(p)}<small>/lb</small></div></div>`).join('')}
+function card(ar,en,img,a,extra=''){return `<div class="card"><div class="ban" style="background-image:url(img/${img}.jpg)"><div class="lbl"><b>${ar}</b><i>${en}</i></div>${extra}</div><div class="list">${rows(a)}</div></div>`}
+function burst(it,size,col1,col2,rot){return `<div class="burst" style="width:${size}px;height:${size}px;transform:rotate(${rot}deg)"><svg viewBox="0 0 100 100"><polygon points="${star(18,50,41)}" fill="${col2}"/><polygon points="${star(18,45,37)}" fill="${col1}"/></svg><div class="in"><div class="k">عرض</div><div class="p">${price(it[2])}<small>/lb</small></div><div class="n">${it[0]}</div></div></div>`}
+
+const slide=new URLSearchParams(location.search).get('s')||'1';
+const M=document.getElementById('main');
+if(slide==='1'){
+ const sale=BEEF.filter(x=>x[3]);
+ const pos=[[60,170,300,'#d3322a','#ffd23f',-8],[420,160,290,'#d3322a','#ffd23f',7],[70,500,280,'#ffb000','#d3322a',6],[430,490,290,'#d3322a','#ffd23f',-6]];
+ M.innerHTML=`<div class="s1"><div class="hero"><h2>عروض الأسبوع<span>WEEKLY DEALS</span></h2>${sale.slice(0,4).map((it,i)=>`<div class="b" style="left:${pos[i][0]}px;top:${pos[i][1]}px">${burst(it,pos[i][2],pos[i][3],pos[i][4],pos[i][5])}</div>`).join('')}</div>${card('لحم بقري','BEEF','beef',BEEF)}</div>`;
+}else{
+ M.innerHTML=`<div class="s2">
+  <div class="stack">${card('غنم وماعز','LAMB & GOAT','lamb',LAMB)}${card('مخلفات','OFFAL','ground',OFFAL)}</div>
+  <div class="stack">${card('دجاج','CHICKEN','chicken',CHICKEN,`<div class="flame">${burst(CHICKEN.find(x=>x[3]),150,'#d3322a','#ffd23f',-10)}</div>`)}</div>
+  <div class="stack">${card('متبّلات','MARINATED','marinated',MARI,`<div class="flame" style="top:6px"><div class="burst" style="width:145px;height:145px;transform:rotate(8deg)"><svg viewBox="0 0 100 100"><polygon points="${star(14,50,40)}" fill="#ffd23f"/><polygon points="${star(14,45,36)}" fill="#1a1208"/></svg><div class="in" style="color:var(--yel);font-weight:700;font-size:23px;line-height:1.15">جاهز<br>للشوي 🔥</div></div></div>`)}
+   <div class="card" style="flex:1;justify-content:center;align-items:center;text-align:center;background:linear-gradient(135deg,#a51f18,#5c0f0b);border-color:#e0453a">
+    <div style="font-size:44px;font-weight:700;line-height:1.2">اطلب تقطيعك<br>على كيفك</div>
+    <div style="font-family:Bebas;font-size:30px;letter-spacing:4px;color:var(--yel);direction:ltr">CUT · GRIND · MARINATE</div>
+    <div style="margin-top:18px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;font-size:24px;font-weight:700">
+     <span style="background:rgba(0,0,0,.3);border:1px solid var(--yel);border-radius:30px;padding:2px 16px">تقطيع</span>
+     <span style="background:rgba(0,0,0,.3);border:1px solid var(--yel);border-radius:30px;padding:2px 16px">فرم</span>
+     <span style="background:rgba(0,0,0,.3);border:1px solid var(--yel);border-radius:30px;padding:2px 16px">تتبيل</span>
+     <span style="background:rgba(0,0,0,.3);border:1px solid var(--yel);border-radius:30px;padding:2px 16px">تغليف</span>
+    </div>
+    <div style="margin-top:16px;font-size:26px;color:#ffd9b0">جودة وطزاجة كل يوم</div>
+   </div>
+  </div></div>`;
+ // marinated card shorter
+ document.querySelectorAll('.s2 .stack')[2].firstElementChild.style.flex='0 0 auto';
+}
+</script>
+</body>
+</html>
