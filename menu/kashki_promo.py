@@ -13,6 +13,7 @@ TMP = os.environ.get('TMPDIR_SEG', '/tmp/kashki_seg'); os.makedirs(TMP, exist_ok
 W, H, FPS = 1920, 1080, 30
 RED, GOLD, CREAM, MUTED, YEL, INK = (211, 50, 42), (240, 192, 96), (255, 246, 236), (179, 161, 145), (255, 210, 63), (40, 26, 20)
 XF = 0.5  # crossfade seconds
+NO_PRICES = bool(os.environ.get('NO_PRICES'))  # NO_PRICES=1 -> no price tags, output kashki_promo_noprices_nomusic.mp4
 
 def font(name, size, var=None):
     f = ImageFont.truetype(os.path.join(FONTS, f'{name}.ttf'), size, layout_engine=ImageFont.Layout.RAQM)
@@ -149,7 +150,7 @@ def overlay(f, t, dur, seg, idx):
         r = RIBS[rib]; k = ease((t - 0.15) / 0.45); put(f, r, W - r.width / 2 + 40 + (1 - k) * r.width, 120, 1)
     put(f, LOGO_SM, 160, 110, 0.95); put(f, HALAL, 150, H - 130, 0.95, 0.8)
     n = len(tags)
-    for j, tg in enumerate(TAGIMG[idx]):
+    for j, tg in ([] if NO_PRICES else enumerate(TAGIMG[idx])):
         ts = 0.5 + j * 0.45; x = W - 80 - tg.width / 2 - j * 0 ; y = H - 150 - (n - 1 - j) * 175
         put(f, tg, x, y, ease((t - ts) / .2), back((t - ts) / .45))
 
@@ -224,5 +225,5 @@ if __name__ == '__main__':
         prev = lab
     subprocess.run(['ffmpeg', '-y', '-v', 'error', *inputs, '-filter_complex', ';'.join(chain), '-map', f'[{prev}]',
                     '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-pix_fmt', 'yuv420p', '-r', str(FPS), '-movflags', '+faststart',
-                    'kashki_promo_nomusic.mp4'], check=True)
+                    'kashki_promo_noprices_nomusic.mp4' if NO_PRICES else 'kashki_promo_nomusic.mp4'], check=True)
     print('done', sum(durs) - XF * (len(durs) - 1))
