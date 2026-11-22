@@ -1,4 +1,4 @@
-"""OnCoal 'farm to table' reel (1080x1920, 30 fps) from the owner's own footage.
+"""OnCoal farm-to-table reel (1080x1920, 30 fps) from the owner's own footage.
 Only on-screen text: the title "مطعم Oncoal".
 
 Usage:  python3 farm.py <uploads dir>   -> oncoal_farm_nomusic.mp4
@@ -13,18 +13,18 @@ TMP = tempfile.mkdtemp()
 
 # (kind, file, start_or_None, duration)
 SHOTS = [
-    ('v', 'IMG_8130.mov', 0.0, 5.5),   # Quba mosque, night
-    ('v', 'IMG_8125.mov', 0.5, 3.5),   # mosque interior
+    ('v', 'IMG_9935.mov', 1.8, 4.5),   # green trees (title)
     ('v', 'IMG_0225.mov', 2.0, 4.5),   # fields
     ('v', 'IMG_0219.mov', 1.0, 5.0),   # sheep
     ('i', 'IMG_0217.jpeg', None, 2.5), # sheep photo
     ('v', 'IMG_0211.mov', 0.0, 3.0),   # cows
-    ('i', 'carcass.jpeg', None, 2.5),  # hanging carcass
-    ('i', 'IMG_0261.jpeg', None, 2.5), # cold room
+    ('i', 'carcass.jpeg', None, 3.0),  # hanging carcass
+    ('p', 'IMG_8835.jpeg', None, 4.5), # cold room rail, panned left -> right
+    ('i', 'coldroom_crop.jpg', None, 3.0),  # close-up, cropped so no face is visible
     ('v', 'IMG_9794.mov', 3.0, 5.0),   # marinated meat display
     ('v', 'IMG_9959.mov', 1.0, 3.0),   # display trays (landscape)
 ]
-END = 7.0
+END = 6.0
 
 
 def run(cmd): subprocess.run(cmd, check=True)
@@ -61,13 +61,16 @@ def shot(i, kind, name, ss, dur):
     if kind == 'v':
         inp = ['-ss', str(ss), '-t', str(dur), '-i', src]
         vf = f'{FILL},fps={FPS},{GRADE},{fade}'
+    elif kind == 'p':  # wide photo: slow horizontal pan
+        inp = ['-loop', '1', '-framerate', str(FPS), '-t', str(dur), '-i', src]
+        vf = (f"scale=-2:{H},crop={W}:{H}:x='(iw-ow)*min(t/{dur},1)':y=0,setsar=1,{GRADE},{fade}")
     else:  # still photo: slow Ken Burns push-in
         n = int(dur * FPS)
         inp = ['-loop', '1', '-t', str(dur), '-i', src]
         vf = (f'scale={W * 2}:{H * 2}:force_original_aspect_ratio=increase,crop={W * 2}:{H * 2},'
               f"zoompan=z='1+0.08*on/{n}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d={n}:s={W}x{H}:fps={FPS},"
               f'setsar=1,{GRADE},{fade}')
-    if i == 0:  # title fades in over the opening mosque shot
+    if i == 0:  # title fades in over the opening shot
         inp += ['-loop', '1', '-i', f'{TMP}/title.png']
         fc = (f'[0:v]{vf}[b];[1:v]format=rgba,fade=t=in:st=0.8:d=0.8:alpha=1,'
               f'fade=t=out:st={dur - 1.2}:d=0.7:alpha=1[t];[b][t]overlay=(W-w)/2:H*0.72:shortest=1')
@@ -93,8 +96,26 @@ def end_card(i):
     return out
 
 
+def prep():
+    """Cold-room close-up: crop away the selfie (face), then warm it up and lift the contrast."""
+    from PIL import ImageEnhance, ImageOps
+    im = Image.open(os.path.join(SRC, 'IMG_0261.jpeg')).convert('RGB').crop((1000, 0, 1936, 1640))
+    im = ImageOps.autocontrast(im, cutoff=1)
+    im = ImageEnhance.Color(im).enhance(1.25)
+    r, g, b = im.split()
+    im = Image.merge('RGB', (r.point(lambda v: min(255, v * 1.06)), g, b.point(lambda v: v * 0.94)))
+    im = im.filter(ImageFilter.UnsharpMask(3, 80, 2))
+    # soft vignette
+    w, h = im.size
+    m = Image.new('L', (w, h), 0)
+    ImageDraw.Draw(m).ellipse((-w * .25, -h * .15, w * 1.25, h * 1.15), fill=255)
+    im = Image.composite(im, ImageEnhance.Brightness(im).enhance(0.55), m.filter(ImageFilter.GaussianBlur(w * .2)))
+    im.save(os.path.join(SRC, 'coldroom_crop.jpg'), quality=95)
+
+
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    prep()
     title_png(f'{TMP}/title.png', 130)
     title_png(f'{TMP}/title_big.png', 170)
     parts = [shot(i, *s) for i, s in enumerate(SHOTS)] + [end_card(len(SHOTS))]
