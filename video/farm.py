@@ -97,19 +97,20 @@ def end_card(i):
 
 
 def prep():
-    """Cold-room close-up: crop away the selfie (face), then warm it up and lift the contrast."""
-    from PIL import ImageEnhance, ImageOps
+    """Cold-room close-up: crop away the selfie (face), then make it bright, fresh and glossy."""
+    from PIL import ImageEnhance, ImageOps, ImageChops
     im = Image.open(os.path.join(SRC, 'IMG_0261.jpeg')).convert('RGB').crop((1000, 0, 1936, 1640))
-    im = ImageOps.autocontrast(im, cutoff=1)
-    im = ImageEnhance.Color(im).enhance(1.25)
-    r, g, b = im.split()
-    im = Image.merge('RGB', (r.point(lambda v: min(255, v * 1.06)), g, b.point(lambda v: v * 0.94)))
-    im = im.filter(ImageFilter.UnsharpMask(3, 80, 2))
-    # soft vignette
-    w, h = im.size
-    m = Image.new('L', (w, h), 0)
-    ImageDraw.Draw(m).ellipse((-w * .25, -h * .15, w * 1.25, h * 1.15), fill=255)
-    im = Image.composite(im, ImageEnhance.Brightness(im).enhance(0.55), m.filter(ImageFilter.GaussianBlur(w * .2)))
+    im = ImageOps.autocontrast(im, cutoff=0.5)
+    im = im.point(lambda v: int(255 * (v / 255) ** 0.5))           # lift shadows/mids (brighter)
+    im = ImageEnhance.Contrast(im).enhance(1.0)
+    im = ImageEnhance.Brightness(im).enhance(1.12)
+    im = ImageEnhance.Color(im).enhance(1.45)                       # fresh red meat
+    r, g, b = im.split()                                            # cool the grey cast slightly toward clean white
+    im = Image.merge('RGB', (r, g.point(lambda v: min(255, v * 1.02)), b.point(lambda v: min(255, v * 1.04))))
+    im = im.filter(ImageFilter.UnsharpMask(4, 110, 2))
+    # glossy sheen: soft bloom from the highlights
+    hi = im.point(lambda v: max(0, v - 170) * 3).filter(ImageFilter.GaussianBlur(18))
+    im = ImageChops.screen(im, ImageEnhance.Brightness(hi).enhance(0.6))
     im.save(os.path.join(SRC, 'coldroom_crop.jpg'), quality=95)
 
 
