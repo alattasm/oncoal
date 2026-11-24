@@ -128,6 +128,12 @@ def video_frames(path, start, dur, pink=True):
 # kind, source, duration, section ribbon, tags [(name, price, sale)]
 SEGS = [
  ('title_in', None, 4.0, None, []),
+ # farm intro (stock clips in broll/, see broll/CREDITS.txt)
+ ('video', (f'{HERE}/broll/sheep_close.mp4', 0.0), 3.8, ('من المزرعة لين بيتك', 'FARM TO TABLE'), [], False),
+ ('video', (f'{HERE}/broll/sheep_aerial.mp4', 0.0), 3.5, ('غنم يرعى في مراعي كندا', 'PASTURE-RAISED IN CANADA'), [], False),
+ ('video', (f'{HERE}/broll/cows_pasture.mp4', 0.0), 3.5, ('أبقار ترعى على الطبيعة', 'GRAZING ON OPEN PASTURE'), [], False),
+ ('video', (f'{HERE}/broll/cows_hay.mp4', 0.0), 3.5, ('تتغذى على البرسيم', 'FED ON ALFALFA & HAY'), [], False),
+ ('video', (f'{HERE}/broll/cows_mountain.mp4', 0.0), 3.5, ('حلال وطازج', 'HALAL & FRESH'), [], False),
  ('video', (f'{UP}/f54c8ff6-IMG_1564.mov', 3.0), 4.5, ('عجل وبقري', 'VEAL & BEEF'), []),
  ('photo', (f'{UP}/44ac7e94-image.jpg', (0, 0, 1512, 900)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('ستيك ستربلوين', '$14.49', 1)]),
  ('photo', (f'{UP}/5071876d-image.jpg', (0, 40, 1700, 1000)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('ستيك ريب', '$9.99', 1), ('ستيك ريب بالعظم', '$7.99', 1)]),
@@ -221,7 +227,7 @@ if __name__ == '__main__':
     for i in range(1, len(files)):
         off += durs[i - 1] - XF
         lab = f'v{i}'
-        chain.append(f'[{prev}][{i}:v]xfade=transition={"slideleft" if i in (6, 7, 8) else "fade"}:duration={XF}:offset={off:.3f}[{lab}]')
+        chain.append(f'[{prev}][{i}:v]xfade=transition={"slideleft" if i in (6, 11, 12, 13) else "fade"}:duration={XF}:offset={off:.3f}[{lab}]')
         prev = lab
     subprocess.run(['ffmpeg', '-y', '-v', 'error', *inputs, '-filter_complex', ';'.join(chain), '-map', f'[{prev}]',
                     '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-pix_fmt', 'yuv420p', '-r', str(FPS), '-movflags', '+faststart',
