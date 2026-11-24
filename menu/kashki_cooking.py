@@ -15,27 +15,30 @@ BAR = 120  # letterbox bar height
 
 # (kind, src, start/box, dur, style, ar, en)   style: big = chapter card, low = lower third, none
 SEGS = [
- ('video', f'{B}/fire_flames.mp4', 0.0, 4.5, 'title', 'من المزرعة… إلى النار', 'FROM FARM TO FIRE'),
+ ('video', f'{B}/river_forest.mp4', 0.0, 4.5, 'title', 'من المزرعة… إلى النار', 'FROM FARM TO FIRE'),
+ ('video', f'{B}/fire_flames.mp4', 0.0, 2.8, 'low', 'شوي جنب النهر', 'RIVERSIDE GRILLING'),
  # chicken
  ('video', f'{B}/white_chickens_feeding.mp4', 0.5, 3.0, 'big', 'دجاج طازج', 'FARM-FRESH CHICKEN'),
  ('photo', f'{HERE}/ai/chicken_trays_test.jpg', (0, 0, 2048, 1152), 2.6, 'none', '', ''),
- ('video', f'{B}/cook_chicken_grill.mp4', 0.0, 3.6, 'low', 'على الفحم', 'CHARCOAL GRILLED'),
- ('video', f'{B}/cook_chicken_smoke.mp4', 0.0, 3.0, 'none', '', ''),
- ('video', f'{B}/cook_chicken_skewers.mp4', 0.0, 3.0, 'low', 'أسياخ دجاج', 'CHICKEN SKEWERS'),
+ ('video', f'{B}/cook_chicken_outdoor.mp4', 0.0, 3.4, 'low', 'في قلب الطبيعة', 'IN THE HEART OF NATURE'),
+ ('video', f'{B}/cook_chicken_grill.mp4', 0.0, 3.4, 'low', 'دجاج على الفحم', 'CHARCOAL GRILLED CHICKEN'),
+ ('video', f'{B}/cook_chicken_skewers.mp4', 0.0, 3.0, 'none', '', ''),
  # lamb
  ('video', f'{B}/sheep_close.mp4', 0.5, 3.0, 'big', 'غنم طازج', 'FARM-FRESH LAMB'),
- ('video', f'{B}/cook_lamb_chops.mp4', 0.0, 3.6, 'low', 'ريش غنم', 'LAMB CHOPS'),
- ('video', f'{B}/cook_kebab_smoke.mp4', 0.0, 3.4, 'low', 'كباب على الجمر', 'KEBAB ON EMBERS'),
- ('video', f'{B}/cook_kebab_coals.mp4', 0.0, 3.0, 'none', '', ''),
- ('video', f'{B}/cook_lamb_spit.mp4', 0.0, 3.2, 'low', 'غنم مشوي', 'SLOW-ROASTED LAMB'),
+ ('video', f'{B}/river_sunlit.mp4', 0.0, 2.8, 'none', '', ''),
+ ('video', f'{B}/cook_lamb_chops.mp4', 0.0, 3.4, 'low', 'ريش غنم', 'LAMB CHOPS'),
+ ('video', f'{B}/cook_kebab_smoke.mp4', 0.0, 3.2, 'low', 'كباب على الجمر', 'KEBAB ON EMBERS'),
+ ('video', f'{B}/cook_campfire.mp4', 0.0, 3.0, 'low', 'على نار الحطب', 'OVER AN OPEN FIRE'),
  # beef
  ('video', f'{B}/cows_pasture.mp4', 0.5, 3.0, 'big', 'لحم بقري طازج', 'FARM-FRESH BEEF'),
- ('photo', f'{UP}/4ad90696-image.jpg', (0, 200, 2000, 1325), 2.6, 'none', '', ''),
- ('video', f'{B}/cook_steak_ongrill.mp4', 0.0, 3.4, 'low', 'ستيك على النار', 'STEAK ON THE FIRE'),
- ('video', f'{B}/cook_steak_flames.mp4', 0.0, 3.2, 'none', '', ''),
- ('video', f'{B}/cook_steak_sliced.mp4', 0.0, 3.4, 'low', 'طري… وعصاري', 'TENDER & JUICY'),
- # outro
- ('photo', f'{UP}/2222e64c-image.jpg', (0, 150, 2000, 1275), 3.0, 'none', '', ''),
+ ('photo', f'{UP}/4ad90696-image.jpg', (0, 200, 2000, 1325), 2.4, 'none', '', ''),
+ ('video', f'{B}/cook_steak_ongrill.mp4', 0.0, 3.2, 'low', 'ستيك على النار', 'STEAK ON THE FIRE'),
+ ('video', f'{B}/cook_steak_flames.mp4', 0.0, 3.0, 'none', '', ''),
+ ('video', f'{B}/cook_steak_sliced.mp4', 0.0, 3.2, 'low', 'طري… وعصاري', 'TENDER & JUICY'),
+ # riverside ending (shop's own photos)
+ ('photo', f'{UP}/2222e64c-image.jpg', (0, 150, 2000, 1275), 3.4, 'low', 'جمعة العيلة جنب النهر', 'FAMILY BBQ BY THE WATER'),
+ ('photo', f'{UP}/bf36a14f-image.jpg', (0, 150, 2000, 1275), 3.0, 'none', '', ''),
+ ('photo', f'{UP}/285cbea0-image.jpg', (0, 700, 1500, 1544), 3.0, 'none', '', ''),
  ('outro', None, None, 6.0, 'none', '', ''),
 ]
 
