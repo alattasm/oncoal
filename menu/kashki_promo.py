@@ -128,26 +128,31 @@ def video_frames(path, start, dur, pink=True):
 # kind, source, duration, section ribbon, tags [(name, price, sale)]
 SEGS = [
  ('title_in', None, 4.0, None, []),
- # farm intro (stock clips in broll/, see broll/CREDITS.txt) – animals moving and eating on green pasture
+ # farm intro (stock clips in broll/, see broll/CREDITS.txt)
  ('video', (f'{HERE}/broll/sheep_close.mp4', 0.0), 4.5, ('من المزرعة لين بيتك', 'FARM TO TABLE'), [], False),
  ('video', (f'{HERE}/broll/cow_eating_close.mp4', 0.0), 4.5, ('أبقار ترعى على الطبيعة', 'GRAZING ON OPEN PASTURE'), [], False),
- ('video', (f'{HERE}/broll/cows_hay.mp4', 0.0), 4.5, ('تتغذى على البرسيم', 'FED ON ALFALFA & HAY'), [], False),
- ('video', (f'{UP}/dd0c97dc-IMG_0219.mov', 2.0), 4.5, ('من المزرعة مباشرة', 'STRAIGHT FROM THE FARM'), [], False),
- ('photo', (f'{UP}/05e6b31f-image.jpg', (0, 480, 1500, 1324)), 4.0, ('غنم طازج', 'FRESH LAMB'), [], False),
- ('photo', (f'{UP}/ec9c5f0d-image.jpg', (0, 500, 1125, 1133)), 4.0, ('عجول مختارة', 'SELECTED CATTLE'), [], False),
- ('video', (f'{HERE}/broll/white_chickens_feeding.mp4', 0.0), 4.5, ('دجاج من مزارع كندا', 'CANADIAN FARM CHICKEN'), [], False),
- ('video', (f'{UP}/f54c8ff6-IMG_1564.mov', 3.0), 4.5, ('عجل وبقري', 'VEAL & BEEF'), []),
- ('photo', (f'{UP}/44ac7e94-image.jpg', (0, 0, 1512, 900)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('ستيك ستربلوين', '$14.49', 1)]),
- ('photo', (f'{UP}/5071876d-image.jpg', (0, 40, 1700, 1000)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('ستيك ريب', '$9.99', 1), ('ستيك ريب بالعظم', '$7.99', 1)]),
- ('photo', (f'{UP}/25bcd118-image.jpg', (0, 420, 1500, 1264)), 4.0, ('نقانق طازجة', 'FRESH SAUSAGES'), [], False),
- ('photo', (f'{UP}/cf06db3a-image.jpg', (0, 260, 1500, 1104)), 4.0, ('كفتة متبّلة', 'SEASONED KOFTA'), [], False),
- ('video', (f'{HERE}/broll/chicken_leg_quarters.mp4', 0.0), 4.0, ('أرباع دجاج', 'LEG QUARTERS'), [], False),
- ('video', (f'{HERE}/broll/chicken_drumsticks.mp4', 0.0), 4.0, ('دبابيس وأفخاذ', 'DRUMSTICKS & THIGHS'), [], False),
+ ('video', (f'{HERE}/broll/cows_hay.mp4', 0.0), 4.0, ('تتغذى على البرسيم', 'FED ON ALFALFA & HAY'), [], False),
+ ('video', (f'{UP}/dd0c97dc-IMG_0219.mov', 2.0), 4.0, ('من المزرعة مباشرة', 'STRAIGHT FROM THE FARM'), [], False),
+ ('video', (f'{HERE}/broll/white_chickens_feeding.mp4', 0.0), 4.0, ('دجاج من مزارع كندا', 'CANADIAN FARM CHICKEN'), [], False),
+ # beef (shop photos/videos, close-ups only)
+ ('video', (f'{UP}/538b7b69-IMG_1565.mov', 1.0), 4.0, ('عجل وبقري', 'VEAL & BEEF'), []),
+ ('photo', (f'{UP}/4ad90696-image.jpg', (0, 200, 2000, 1325)), 3.5, ('ستيكات طازجة', 'FRESH STEAKS'), []),
+ ('photo', (f'{UP}/44ac7e94-image.jpg', (0, 0, 1512, 900)), 3.5, ('ستيكات طازجة', 'FRESH STEAKS'), []),
+ ('photo', (f'{UP}/aad79603-image.jpg', (0, 150, 2000, 1275)), 3.5, ('لحم بالعظم', 'BONE-IN CUTS'), []),
+ ('photo', (f'{UP}/25bcd118-image.jpg', (0, 420, 1500, 1264)), 3.5, ('نقانق طازجة', 'FRESH SAUSAGES'), [], False),
+ ('photo', (f'{UP}/cf06db3a-image.jpg', (0, 260, 1500, 1104)), 3.5, ('كفتة متبّلة', 'SEASONED KOFTA'), [], False),
+ # chicken
+ ('video', (f'{HERE}/broll/chicken_leg_quarters.mp4', 0.0), 3.5, ('أرباع دجاج', 'LEG QUARTERS'), [], False),
+ ('video', (f'{HERE}/broll/chicken_drumsticks.mp4', 0.0), 3.5, ('دبابيس وأفخاذ', 'DRUMSTICKS & THIGHS'), [], False),
  ('video', (f'{HERE}/broll/chicken_breast.mp4', 0.0), 3.5, ('صدور دجاج', 'CHICKEN BREAST'), [], False),
- ('video', (f'{UP}/ce006880-IMG_2013.mov', 1.0), 4.0, ('دجاج متبّل', 'MARINATED'), [('دجاج متبّل بالعظم', '$3.99', 0)], False),
- ('video', (f'{UP}/1f983b78-IMG_2014.mov', 0.0), 4.0, ('دجاج متبّل', 'MARINATED'), [('متبّل بدون عظم', '$8.49', 0)], False),
- ('video', (f'{UP}/0beabd04-IMG_9767.mov', 12.0), 4.5, ('جاهز للشوي', 'READY TO GRILL'), [], False),
- ('photo', (f'{UP}/4f1a9e60-image.jpg', (0, 640, 1500, 1484)), 4.0, ('مشاوي على الفحم', 'BBQ SKEWERS'), [], False),
+ ('photo', (f'{UP}/d0817bd4-image.jpg', (0, 250, 2000, 1375)), 3.5, ('دجاج متبّل', 'MARINATED'), []),
+ ('video', (f'{UP}/ce006880-IMG_2013.mov', 1.0), 3.5, ('دجاج متبّل', 'MARINATED'), [], False),
+ ('video', (f'{UP}/1f983b78-IMG_2014.mov', 0.0), 3.5, ('متبّل بدون عظم', 'BONELESS MARINATED'), [], False),
+ # grilling
+ ('video', (f'{UP}/0beabd04-IMG_9767.mov', 12.0), 4.0, ('جاهز للشوي', 'READY TO GRILL'), [], False),
+ ('photo', (f'{UP}/4f1a9e60-image.jpg', (0, 640, 1500, 1484)), 3.5, ('مشاوي على الفحم', 'BBQ SKEWERS'), [], False),
+ ('photo', (f'{UP}/2222e64c-image.jpg', (0, 300, 2000, 1425)), 4.0, ('طلعات العيلة', 'FAMILY BBQ DAYS'), [], False),
+ ('photo', (f'{UP}/285cbea0-image.jpg', (0, 700, 1500, 1544)), 3.5, ('جمعة على النار', 'GATHER AROUND THE FIRE'), [], False),
  ('title_out', None, 7.0, None, []),
 ]
 
@@ -230,7 +235,7 @@ if __name__ == '__main__':
     for i in range(1, len(files)):
         off += durs[i - 1] - XF
         lab = f'v{i}'
-        chain.append(f'[{prev}][{i}:v]xfade=transition={"slideleft" if i in (6, 11, 12, 13) else "fade"}:duration={XF}:offset={off:.3f}[{lab}]')
+        chain.append(f'[{prev}][{i}:v]xfade=transition={"slideleft" if i in (6, 12, 18) else "fade"}:duration={XF}:offset={off:.3f}[{lab}]')
         prev = lab
     subprocess.run(['ffmpeg', '-y', '-v', 'error', *inputs, '-filter_complex', ';'.join(chain), '-map', f'[{prev}]',
                     '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-pix_fmt', 'yuv420p', '-r', str(FPS), '-movflags', '+faststart',
