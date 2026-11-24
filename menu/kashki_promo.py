@@ -134,6 +134,8 @@ SEGS = [
  ('video', (f'{HERE}/broll/sheep_aerial.mp4', 0.0), 4.5, ('غنم يرعى في مراعي كندا', 'PASTURE-RAISED IN CANADA'), [], False),
  ('video', (f'{HERE}/broll/cows_pasture.mp4', 0.0), 4.5, ('مراعي خضراء', 'GREEN PASTURES'), [], False),
  ('video', (f'{HERE}/broll/cows_hay.mp4', 0.0), 4.5, ('تتغذى على البرسيم', 'FED ON ALFALFA & HAY'), [], False),
+ ('video', (f'{HERE}/broll/chickens_grass.mp4', 0.0), 4.5, ('دجاج من مزارع كندا', 'CANADIAN FARM CHICKEN'), [], False),
+ ('video', (f'{HERE}/broll/chickens_farm.mp4', 0.0), 4.5, ('دجاج طازج من المزرعة', 'FARM-FRESH CHICKEN'), [], False),
  ('video', (f'{UP}/f54c8ff6-IMG_1564.mov', 3.0), 4.5, ('عجل وبقري', 'VEAL & BEEF'), []),
  ('photo', (f'{UP}/44ac7e94-image.jpg', (0, 0, 1512, 900)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('ستيك ستربلوين', '$14.49', 1)]),
  ('photo', (f'{UP}/5071876d-image.jpg', (0, 40, 1700, 1000)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('ستيك ريب', '$9.99', 1), ('ستيك ريب بالعظم', '$7.99', 1)]),
