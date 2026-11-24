@@ -128,23 +128,21 @@ def video_frames(path, start, dur, pink=True):
 # kind, source, duration, section ribbon, tags [(name, price, sale)]
 SEGS = [
  ('title_in', None, 4.0, None, []),
- # farm intro (stock clips in broll/, see broll/CREDITS.txt)
- ('video', (f'{HERE}/broll/sheep_close.mp4', 0.0), 3.8, ('من المزرعة لين بيتك', 'FARM TO TABLE'), [], False),
- ('video', (f'{HERE}/broll/sheep_aerial.mp4', 0.0), 3.5, ('غنم يرعى في مراعي كندا', 'PASTURE-RAISED IN CANADA'), [], False),
- ('video', (f'{HERE}/broll/cows_pasture.mp4', 0.0), 3.5, ('أبقار ترعى على الطبيعة', 'GRAZING ON OPEN PASTURE'), [], False),
- ('video', (f'{HERE}/broll/cows_hay.mp4', 0.0), 3.5, ('تتغذى على البرسيم', 'FED ON ALFALFA & HAY'), [], False),
- ('video', (f'{HERE}/broll/cows_mountain.mp4', 0.0), 3.5, ('حلال وطازج', 'HALAL & FRESH'), [], False),
+ # farm intro (stock clips in broll/, see broll/CREDITS.txt) – animals moving and eating on green pasture
+ ('video', (f'{HERE}/broll/sheep_close.mp4', 0.0), 4.5, ('من المزرعة لين بيتك', 'FARM TO TABLE'), [], False),
+ ('video', (f'{HERE}/broll/cow_eating_close.mp4', 0.0), 4.5, ('أبقار ترعى على الطبيعة', 'GRAZING ON OPEN PASTURE'), [], False),
+ ('video', (f'{HERE}/broll/sheep_aerial.mp4', 0.0), 4.5, ('غنم يرعى في مراعي كندا', 'PASTURE-RAISED IN CANADA'), [], False),
+ ('video', (f'{HERE}/broll/cows_pasture.mp4', 0.0), 4.5, ('مراعي خضراء', 'GREEN PASTURES'), [], False),
+ ('video', (f'{HERE}/broll/cows_hay.mp4', 0.0), 4.5, ('تتغذى على البرسيم', 'FED ON ALFALFA & HAY'), [], False),
  ('video', (f'{UP}/f54c8ff6-IMG_1564.mov', 3.0), 4.5, ('عجل وبقري', 'VEAL & BEEF'), []),
  ('photo', (f'{UP}/44ac7e94-image.jpg', (0, 0, 1512, 900)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('ستيك ستربلوين', '$14.49', 1)]),
  ('photo', (f'{UP}/5071876d-image.jpg', (0, 40, 1700, 1000)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('ستيك ريب', '$9.99', 1), ('ستيك ريب بالعظم', '$7.99', 1)]),
  ('photo', (f'{UP}/6c6c5ef0-image.jpg', (0, 0, 2016, 1134)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('روستو بقري', '$9.99', 1), ('روستو فخذ', '$10.49', 0)]),
- ('photo', (f'{UP}/1c23641b-image.jpg', (0, 100, 2016, 1234)), 4.0, ('عجل وبقري', 'VEAL & BEEF'), [('ستيك كتف', '$9.99', 0), ('فلانك / صدر', '$11.99', 0)]),
  ('photo', (f'{UP}/a5daddff-image.jpg', (180, 520, 1300, 1150)), 4.5, ('غنم وماعز', 'LAMB & GOAT'), [('فخذ ماعز', '$15.99', 0), ('مكعبات ماعز', '$7.99', 0)]),
  ('photo', (f'{UP}/79be129e-image.jpg', (0, 640, 1990, 1760)), 4.5, ('دجاج طازج', 'FRESH CHICKEN'), [('دجاج كامل', '$3.59', 0), ('أجنحة دجاج', '$4.49', 1)]),
  ('video', (f'{UP}/ce006880-IMG_2013.mov', 1.0), 4.0, ('دجاج متبّل', 'MARINATED'), [('دجاج متبّل بالعظم', '$3.99', 0)], False),
  ('video', (f'{UP}/1f983b78-IMG_2014.mov', 0.0), 4.0, ('دجاج متبّل', 'MARINATED'), [('متبّل بدون عظم', '$8.49', 0)], False),
  ('video', (f'{UP}/3bb8fd10-IMG_2015.mov', 0.5), 4.0, ('جاهز للشوي', 'READY TO GRILL'), [], False),
- ('photo', (f'{UP}/68f25c4a-image.jpg', (0, 300, 1512, 1150)), 4.0, ('جاهز للشوي', 'READY TO GRILL'), [], False),
  ('title_out', None, 7.0, None, []),
 ]
 
