@@ -329,6 +329,40 @@ def make_particles():
     return stuck, free, bigpops
 
 
+def make_confetti():
+    rng = np.random.default_rng(5); out = []
+    bursts = [T_COL0 + i * SEC for i in range(5)] + [T_FIN, T_FIN + 4, T_END]
+    for tb in bursts:
+        for k in range(150):
+            out.append(dict(t=tb + rng.uniform(0, 0.25), x=rng.uniform(-100, W + 100), y=-rng.uniform(20, 300),
+                            vx=rng.uniform(-60, 60), vy=rng.uniform(260, 480), w=rng.uniform(22, 36), h=rng.uniform(11, 17),
+                            spin=rng.uniform(3, 9), ph=rng.uniform(0, 6.28), col=ALLC[rng.integers(len(ALLC))]))
+    return out
+
+
+def draw_confetti(d, t):
+    for c in G['conf']:
+        a = t - c['t']
+        if a < 0 or a > 3.2: continue
+        x = c['x'] + c['vx'] * a + 40 * math.sin(a * 3 + c['ph']); y = c['y'] + c['vy'] * a
+        if y > H + 30: continue
+        ang = c['ph'] + c['spin'] * a; sq = abs(math.cos(a * c['spin'] * 0.7 + c['ph']))
+        w, h = c['w'] / 2, c['h'] / 2 * (0.3 + 0.7 * sq)
+        ca, sa = math.cos(ang), math.sin(ang)
+        pts = [(x + px * ca - py * sa, y + px * sa + py * ca) for px, py in ((-w, -h), (w, -h), (w, h), (-w, h))]
+        alpha = int(255 * clamp((3.2 - a) / 0.6))
+        d.polygon(pts, fill=c['col'] + (alpha,))
+
+
+def star(d, x, y, r, col, rot=0.0, alpha=255):
+    pts = []
+    for k in range(10):
+        rr = r if k % 2 == 0 else r * 0.45
+        a = rot + k * math.pi / 5 - math.pi / 2
+        pts.append((x + rr * math.cos(a), y + rr * math.sin(a)))
+    d.polygon(pts, fill=col + (alpha,), outline=(255, 255, 255, alpha))
+
+
 # ---------------------------------------------------------------- frame
 G = {}
 
@@ -341,6 +375,7 @@ def init():
     G['yusuf'], G['ysc'] = build_yusuf(YH)
     G['wand'] = build_wand()
     G['stuck'], G['free'], G['big'] = make_particles()
+    G['conf'] = make_confetti()
 
 
 def emit_pos(t):
@@ -434,7 +469,15 @@ def render(t):
         i = sec; name, col = COLORS[i]; t0 = T_COL0 + i * SEC
         a = 1 - clamp((t - (t0 + SEC - 0.5)) / 0.4)
         pulse = 0.18 * math.exp(-max(0, t - (t0 + 12)) * 5) if t >= t0 + 12 else 0
-        word(fr, name, 800, 960, 190, [col], t0 + 0.05, t, 0.07, alpha=a, pulse=pulse)
+        beat_p = 0.06 * math.exp(-((t - T_COL0) % BEAT) * 9)
+        word(fr, name, 800, 960, 190, [col], t0 + 0.05, t, 0.07, alpha=a, pulse=pulse + beat_p)
+        sl = Image.new('RGBA', (W, H)); sd = ImageDraw.Draw(sl)
+        for k in range(6):
+            ang = k * math.pi / 3 + t * 0.8
+            tw = 0.5 + 0.5 * math.sin(t * 6 + k * 1.7)
+            if t > t0 + 0.6:
+                star(sd, 800 + 330 * math.cos(ang), 950 + 95 * math.sin(ang), 14 + 14 * tw, (255, 230, 80), t * 2 + k, int(255 * a * (0.4 + 0.6 * tw)))
+        fr.alpha_composite(sl)
         if t0 + 14 <= t < t0 + SEC:
             k = (t - t0 - 14) / 0.4
             put(fr, plain('What color is next?', 58, (255, 255, 255), (40, 110, 230)), 800, 620,
@@ -459,8 +502,13 @@ def render(t):
     # persistent corner logo after intro
     if 8.2 <= t < T_END:
         put(fr, logo(), 170, 70, smooth((t - 8.2) / 0.5) * 0.95)
+    cl = Image.new('RGBA', (W, H)); draw_confetti(ImageDraw.Draw(cl), t); fr.alpha_composite(cl)
     # fade in / out
     out = fr.convert('RGB')
+    if T_COL0 <= t < T_END + 0.5:
+        z = 1 + 0.014 * math.exp(-((t - T_COL0) % BEAT) * 8)
+        zw, zh = int(W * z), int(H * z)
+        out = out.resize((zw, zh), Image.BILINEAR).crop(((zw - W) // 2, (zh - H) // 2, (zw - W) // 2 + W, (zh - H) // 2 + H))
     f = min(clamp(t / 0.5), clamp((DUR - t) / 0.8))
     if f < 1: out = Image.blend(Image.new('RGB', (W, H), (0, 0, 0)), out, f)
     return out
