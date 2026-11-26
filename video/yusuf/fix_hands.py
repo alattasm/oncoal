@@ -1,7 +1,7 @@
 """Keep Yusuf's original hands and add the missing fingers in the same style (5 per hand).
 
-Original right hand (raised, image right): thumb + 2 fingers -> add ring + little finger below them.
-Original left hand (image left): thumb + 2 fingers -> add index (up-left) + little finger (below).
+Original right hand: thumb + index/middle (overlapping, one wide shape) + ring -> add the little finger.
+Original left hand: thumb + index/middle (overlapping) + ring -> add the little finger.
 New fingers are drawn UNDER the original sprite so the original palm covers their bases.
 Writes yusuf_hands.png.
 """
@@ -40,11 +40,9 @@ def finger(d, base, tip, w):
 
 
 layer = Image.new('RGBA', (Wd * SS, Ht * SS)); d = ImageDraw.Draw(layer)
-# right hand: ring + little finger under the middle finger (pointing up-right like the others)
-finger(d, (782, 398), (836, 350), 24)
+# right hand: little finger under the ring finger
 finger(d, (778, 425), (826, 395), 21)
-# left hand: index between thumb and the left-pointing finger, little finger under the lowest finger
-finger(d, (184, 468), (126, 412), 25)
+# left hand: little finger under the lowest finger
 finger(d, (198, 568), (134, 606), 22)
 layer = layer.resize((Wd, Ht), Image.LANCZOS).filter(ImageFilter.GaussianBlur(0.4))
 

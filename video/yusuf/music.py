@@ -210,21 +210,19 @@ def band_bar(tb, b, tr=0, lead_on=True, arp_on=True, full=True):
 
 
 # ---------------------------------------------------------------- vocals
-def load_vox(name, pitch=1.14):
-    with wave.open(f'vo/{name}.wav') as w:
+def load_vox(name, folder='vo'):
+    with wave.open(f'{folder}/{name}.wav') as w:
         sr = w.getframerate(); a = np.frombuffer(w.readframes(w.getnframes()), np.int16) / 32768.0
     nz = np.where(np.abs(a) > 0.01)[0]
     a = a[max(nz[0] - 200, 0): nz[-1] + 800]
-    n_out = int(len(a) * SR / sr / pitch)
+    n_out = int(len(a) * SR / sr)               # resample only - natural pitch
     return np.interp(np.linspace(0, len(a) - 1, n_out), np.arange(len(a)), a)
 
 
-def vox(name, t, g=1.0, chorus=False, pitch=1.14):
-    add('vox', load_vox(name, pitch), t, g, 0)
-    if chorus:   # kid-chorus layers
-        add('vox', load_vox(name, pitch * 1.12), t + 0.02, g * 0.6, -0.6)
-        add('vox', load_vox(name, pitch * 1.07), t + 0.04, g * 0.55, 0.6)
-        add('vox', load_vox(name, pitch * 1.18), t + 0.03, g * 0.35, 0.0)
+def vox(name, t, g=1.0, chorus=False):
+    add('vox', load_vox(name), t, g, 0)
+    if chorus:   # a second friendly voice singing along softly
+        add('vox', load_vox(name, 'vo2'), t + 0.02, g * 0.4, 0.35)
 
 
 # ---------------------------------------------------------------- arrangement
@@ -326,8 +324,8 @@ gains = {'lead': 0.75, 'glock': 0.8, 'stab': 0.9, 'arp': 0.8, 'pad': 0.8, 'bass'
 pumped = sum(bus[k] * gains[k] for k in ('stab', 'arp', 'pad', 'bass')) * pump[:, None]
 music = pumped + sum(bus[k] * gains[k] for k in ('lead', 'glock', 'fx'))
 music = reverb(music, 1.2, 0.16) + bus['kick'] * gains['kick'] + bus['drm'] * gains['drm']
-vx = reverb(bus['vox'] * 1.7, 0.7, 0.10)
-vx = vx + 0.25 * hp(vx.T, 2500).T            # presence
+vx = reverb(bus['vox'] * 1.7, 0.6, 0.07)
+vx = vx + 0.12 * hp(vx.T, 2500).T            # gentle presence
 env = np.abs(vx).max(1)
 k = int(SR * 0.08); env = np.convolve(env, np.ones(k) / k, 'same')
 duck = 1 - 0.3 * np.clip(env / (env.max() * 0.3), 0, 1)

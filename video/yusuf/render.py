@@ -450,14 +450,14 @@ def render(t):
     x, yb, rot = yusuf_pose(t)
     ys = G['yusuf']
     hand, tip = wand_tip(t, G['ysc'], ys)
+    wa = rot + 3 * math.sin(math.pi * t / BEAT)          # wand sits behind the hand (held)
+    put(fr, G['wand'].rotate(wa, Image.BICUBIC, expand=True), hand[0] + 40, hand[1] - 95)
     if rot:
         big = Image.new('RGBA', (ys.width, ys.height * 2)); big.alpha_composite(ys, (0, 0))
         big = big.rotate(rot, Image.BICUBIC, center=(ys.width / 2, ys.height))
         fr.alpha_composite(big, (int(x - ys.width / 2), int(yb - ys.height)))
     else:
         fr.alpha_composite(ys, (int(x - ys.width / 2), int(yb - ys.height)))
-    wa = rot + 8 * math.sin(math.pi * t / BEAT)
-    put(fr, G['wand'].rotate(wa, Image.BICUBIC, expand=True), hand[0] + 45, hand[1] - 90)
 
     # ---------------- text layers
     if t < 8.2:
