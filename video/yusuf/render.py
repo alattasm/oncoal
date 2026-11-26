@@ -237,7 +237,7 @@ def build_sun_face():
 
 
 def build_yusuf(height=860):
-    im = Image.open(os.path.join(HERE, 'yusuf_hands.png')).convert('RGBA')
+    im = Image.open(os.path.join(HERE, 'yusuf2_clean.png')).convert('RGBA')
     sc = height / im.height
     im = im.resize((int(im.width * sc), height), Image.LANCZOS)
     # soft white outline sticker effect
@@ -258,14 +258,14 @@ def build_wand():
 
 
 # ---------------------------------------------------------------- choreography
-YH = 860
-YX, YBASE = 1530, 1110         # centre-x of Yusuf, bottom y
+YH = 840
+YX, YBASE = 1540, 1062         # centre-x of Yusuf, feet y (full body on the grass)
 
 
 def yusuf_pose(t):
     intro = back((t - 0.8) / 1.0)
     x = YX + (1 - intro) * 700
-    bob = abs(math.sin(math.pi * t / BEAT)) * 20
+    bob = abs(math.sin(math.pi * t / BEAT)) * 14
     rot = math.sin(math.pi * t / (2 * BEAT)) * 3.0
     if t > T_END: bob *= 0.6
     return x, YBASE - bob, rot
@@ -274,7 +274,7 @@ def yusuf_pose(t):
 def wand_tip(t, sc, ys):
     """Ring centre in frame coords (wand is held in Yusuf's raised hand, image-right)."""
     x, yb, rot = yusuf_pose(t)
-    hx, hy = 770 * sc, 450 * sc                       # hand in scaled sprite coords
+    hx, hy = 748 * sc, 418 * sc                       # raised hand (image right), scaled sprite coords
     w_im, h_im = ys.width, ys.height
     # offset from sprite centre, rotated about bottom-centre pivot
     px, py = hx - w_im / 2, hy - h_im
@@ -450,6 +450,10 @@ def render(t):
     x, yb, rot = yusuf_pose(t)
     ys = G['yusuf']
     hand, tip = wand_tip(t, G['ysc'], ys)
+    if 'shadow' not in G:
+        sh = Image.new('RGBA', (360, 80)); ImageDraw.Draw(sh).ellipse([20, 20, 340, 60], fill=(30, 80, 30, 110))
+        G['shadow'] = sh.filter(ImageFilter.GaussianBlur(8))
+    put(fr, G['shadow'], x - 10, YBASE - 12, 1.0, 1 - (YBASE - yb) / 80)
     wa = rot + 3 * math.sin(math.pi * t / BEAT)          # wand sits behind the hand (held)
     put(fr, G['wand'].rotate(wa, Image.BICUBIC, expand=True), hand[0] + 40, hand[1] - 95)
     if rot:
