@@ -2,7 +2,7 @@
 time-fitted (pitch kept) into each lyric slot of the original song, then mixed over the beat-aligned ElevenLabs
 background loop (bgm2.mp3, C major ~89 BPM). Writes mix.wav next to this script.
 
-Usage: python3 kid_mix.py WORKDIR   (WORKDIR holds kid/, kid/lines.json, bgm2.mp3, instrumental.wav)
+Usage: python3 kid_mix.py WORKDIR [sung]   (WORKDIR holds kid/, kid/lines.json, bgm2.mp3, instrumental.wav)
 """
 import json, os, sys
 import numpy as np, librosa, soundfile as sf
@@ -33,6 +33,10 @@ for i, (s, e, txt) in enumerate(lines):
     voc[a:b] += y[:b - a]
     fits.append((i, round(rate, 2), round(start - s, 2)))
 print('line, stretch, delay_s:', fits)
+if len(sys.argv) > 2 and sys.argv[2] == 'sung':      # use the sung kid vocal (kid_sing.py) instead of spoken lines
+    ys, _ = librosa.load(os.path.join(WD, 'kid_sung.wav'), sr=SR, mono=True)
+    voc = np.zeros(n); voc[:min(n, len(ys))] = ys[:n]; voc /= np.abs(voc).max() + 1e-9
+    print('using sung vocal')
 sf.write(os.path.join(WD, 'kid_vocal.wav'), voc, SR)
 
 # ---- background loop, beat aligned to the song
