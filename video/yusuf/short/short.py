@@ -16,14 +16,16 @@ W, H, FPS = 1080, 1920, 24
 SRC = sys.argv[1]
 SW, SH = 1024, 576
 COLS = [(238, 48, 62), (255, 150, 30), (255, 208, 30), (58, 196, 78), (38, 140, 245), (160, 72, 222), (255, 110, 190)]
-LYR = [
-    (0.0, 'Hello, hello, I\'m Baby Yuyu!'), (1.8, 'Come and dance, I\'ll sing with you'),
-    (3.3, 'Clap your hands and move your feet'), (4.6, 'Let\'s sing letters to the beat!'),
-    (6.8, 'ABCDEFG'), (9.0, 'Come dance along with me'), (10.2, 'HIJKLMN'), (12.1, 'Jump up high and clap again'),
-    (13.7, 'OPQRSTU'), (16.4, 'Wiggle, wiggle, Baby Yuyu'), (18.3, 'VWXYZ'), (20.4, 'Dance along and sing with me'),
-    (22.3, 'Clap, clap, clap, hip hip hooray!'), (24.8, 'We learned our ABCs today!'), (26.6, 'Dance with Yuyu'),
-    (27.6, 'One, two, three, learning letters happily!'), (30.2, ''),
+LYR = [   # timings from word-level transcription of the Eleven Music song; letter lines carry per-letter times
+    (0.0, ''), (3.0, "Hello, hello, I'm Baby Yuyu!"), (5.8, "Come and dance, I'll sing with you"),
+    (8.4, 'Clap your hands and move your feet'), (10.6, "Let's sing letters to the beat!"),
+    (13.9, 'ABCDEFG', [13.96, 14.5, 14.9, 15.3, 15.55, 15.75, 15.95]), (16.2, 'Come and dance along with me'),
+    (18.8, 'HIJKLMN', [18.86, 19.8, 20.16, 20.6, 20.85, 21.1, 21.4]), (21.7, 'Jump up high and clap again'),
+    (23.9, 'OPQRSTU', [23.96, 25.1, 25.6, 26.22, 26.64, 27.1, 27.45]), (27.7, 'Wiggle, wiggle, Baby Yuyu!'),
+    (29.9, 'VWXYZ', [30.0, 30.36, 30.94, 31.64, 32.18]), (32.5, 'Now I know my ABC!'),
+    (34.9, 'Clap, clap, clap! Hip hip hooray!'), (37.5, 'We learned our ABCs today!'), (40.4, 'Yay! Bye bye!'), (46.0, ''),
 ]
+DUR_END = float(os.environ.get('SHORT_DUR', '30.4'))
 VID_Y = 560                                # top of framed video
 VW, VH = 1040, int(1040 * SH / SW)
 
@@ -51,8 +53,9 @@ def wrap(text, size, maxw):
 
 
 def caption(fr, t):
-    idx = max(i for i, (s, _) in enumerate(LYR) if s <= t)
-    s, text = LYR[idx]; e = LYR[idx + 1][0] if idx + 1 < len(LYR) else s + 3
+    idx = max(i for i, L in enumerate(LYR) if L[0] <= t)
+    s, text = LYR[idx][:2]; times = LYR[idx][2] if len(LYR[idx]) > 2 else None
+    e = LYR[idx + 1][0] if idx + 1 < len(LYR) else s + 3
     if not text: return
     k = (t - s) / 0.35
     cy = 1500
@@ -61,7 +64,7 @@ def caption(fr, t):
         f = R.font(size); gap = 10
         ws = [f.getlength(c) for c in text]; total = sum(ws) + gap * (n - 1); x = W / 2 - total / 2
         for i, ch in enumerate(text):
-            ti = s + i * step; kk = (t - ti) / 0.3
+            ti = times[i] if times else s + i * step; kk = (t - ti) / 0.3
             if kk > 0:
                 active = 1 + 0.25 * math.exp(-max(0, t - ti) * 6)
                 R.put(fr, R.glyph(ch, size, COLS[i % len(COLS)]), x + ws[i] / 2, cy - 14 * math.sin(t * 6 + i), 1, R.back(kk) * active, 5 * math.sin(t * 4 + i))
@@ -84,7 +87,7 @@ for i, ch in enumerate('ABCDEFGHIJKLMNOPQRSTUVWXYZ' * 2):
 def bg_letters(fr, t):
     for L in BG_LETTERS:
         y = (L['y0'] - L['sp'] * t) % (H + 200) - 100
-        if VID_Y - 90 < y < VID_Y + VH + 90: continue        # keep the video area clear
+        if VID_Y - 90 < y < VID_Y + VH + 90 or 140 < y < 480: continue   # keep the video and title areas clear
         x = L['x'] + 25 * math.sin(t * 1.2 + L['ph'])
         R.put(fr, R.glyph(L['ch'], L['size'], L['col'], None, False), x, y, 0.55, 1 + 0.06 * math.sin(t * 3 + L['ph']),
               L['rot'] + 8 * math.sin(t * 1.5 + L['ph']))
@@ -118,7 +121,7 @@ def compose(src_rgb, t):
                 sy + (r if k % 2 == 0 else r * 0.42) * math.sin(t + k * math.pi / 5 - math.pi / 2)) for k in range(10)]
         d.polygon(pts, fill=(255, 225, 70, 255), outline=(255, 255, 255, 255))
     out = fr.convert('RGB')
-    f = min(1.0, t / 0.3, max(0.0, (30.4 - t) / 0.6))
+    f = min(1.0, t / 0.3, max(0.0, (DUR_END - t) / 0.8))
     if f < 1: out = Image.blend(Image.new('RGB', (W, H), (255, 255, 255)), out, f)
     return out
 
