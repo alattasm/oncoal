@@ -73,6 +73,23 @@ def caption(fr, t):
         R.put(fr, R.plain(ln, 76, (255, 255, 255), (60, 40, 160), 10), W / 2, y, 1, R.back(k) * (1 + 0.02 * math.sin(t * 8)))
 
 
+_rng = np.random.default_rng(4)
+BG_LETTERS = []
+for i, ch in enumerate('ABCDEFGHIJKLMNOPQRSTUVWXYZ' * 2):
+    # spread across the margins (above / below the framed video), drifting upward and looping
+    BG_LETTERS.append(dict(ch=ch, x=_rng.uniform(70, W - 70), y0=_rng.uniform(0, H), size=int(_rng.uniform(90, 150)),
+                           col=COLS[i % len(COLS)], sp=_rng.uniform(35, 70), ph=_rng.uniform(0, 6.28), rot=_rng.uniform(-15, 15)))
+
+
+def bg_letters(fr, t):
+    for L in BG_LETTERS:
+        y = (L['y0'] - L['sp'] * t) % (H + 200) - 100
+        if VID_Y - 90 < y < VID_Y + VH + 90: continue        # keep the video area clear
+        x = L['x'] + 25 * math.sin(t * 1.2 + L['ph'])
+        R.put(fr, R.glyph(L['ch'], L['size'], L['col'], None, False), x, y, 0.55, 1 + 0.06 * math.sin(t * 3 + L['ph']),
+              L['rot'] + 8 * math.sin(t * 1.5 + L['ph']))
+
+
 def compose(src_rgb, t):
     im = Image.frombytes('RGB', (SW, SH), src_rgb)
     # background: cover-scale + heavy blur (done small for speed) + soft colour wash
@@ -81,6 +98,7 @@ def compose(src_rgb, t):
     bg = small.resize((bgw, H), Image.BILINEAR).crop(((bgw - W) // 2, 0, (bgw - W) // 2 + W, H)).convert('RGBA')
     wash = Image.new('RGBA', (W, H), (255, 255, 255, 50)); bg.alpha_composite(wash)
     fr = bg
+    bg_letters(fr, t)
     # bobbing framed video
     bob = 6 * math.sin(t * 2 * math.pi / 1.346)
     x0 = (W - VW) // 2; y0 = int(VID_Y + bob)
