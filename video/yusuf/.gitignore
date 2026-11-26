@@ -2,3 +2,5 @@ voice/
 *.onnx
 yusuf_bubbles_nomusic.mp4
 __pycache__/
+yusuf*.png
+short/*.mp4
