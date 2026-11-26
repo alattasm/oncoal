@@ -3,7 +3,7 @@
 Usage:  python3 render.py               -> yusuf_bubbles_nomusic.mp4, then mux with song.wav
         python3 render.py 3 20.5 ...    -> preview stills into $PREVIEW_DIR (default /tmp)
 """
-import math, os, subprocess, sys
+import json, math, os, subprocess, sys
 from functools import lru_cache
 from multiprocessing import Pool
 import numpy as np
@@ -237,7 +237,7 @@ def build_sun_face():
 
 
 def build_yusuf(height=860):
-    im = Image.open(os.path.join(HERE, 'yusuf_clean.png')).convert('RGBA')
+    im = Image.open(os.path.join(HERE, 'yusuf_hands.png')).convert('RGBA')
     sc = height / im.height
     im = im.resize((int(im.width * sc), height), Image.LANCZOS)
     # soft white outline sticker effect
@@ -274,14 +274,15 @@ def yusuf_pose(t):
 def wand_tip(t, sc, ys):
     """Ring centre in frame coords (wand is held in Yusuf's raised hand, image-right)."""
     x, yb, rot = yusuf_pose(t)
-    hx, hy = 770 * sc, 450 * sc                       # hand in scaled sprite coords
+    rc = json.load(open(os.path.join(HERE, 'yusuf_hands.json')))['ring']
+    hx, hy = rc[0] * sc, rc[1] * sc                   # wand ring (baked into sprite), scaled sprite coords
     w_im, h_im = ys.width, ys.height
     # offset from sprite centre, rotated about bottom-centre pivot
     px, py = hx - w_im / 2, hy - h_im
     a = math.radians(rot)
     rx = px * math.cos(a) + py * math.sin(a); ry = -px * math.sin(a) + py * math.cos(a)
     hand = (x + rx, yb + ry)
-    return hand, (hand[0] + 95, hand[1] - 185)
+    return hand, hand
 
 
 def section_of(t):
@@ -318,7 +319,7 @@ def make_particles():
                              vy=-rng.uniform(60, 220), ph=rng.uniform(0, 6.28), glossy=rng.random() < 0.55))
         # three big bubbles popping on the "Pop pop pop" beats
         for k in range(3):
-            bigpops.append(dict(t_in=t0 + 8.2 + k * 0.25, t_pop=t0 + 10 + k * BEAT, x=820 + k * 200, y=520 - 60 * (k % 2), r=70, col=col))
+            bigpops.append(dict(t_in=t0 + 8.2 + k * 0.25, t_pop=t0 + 10 + k * BEAT, x=680 + k * 190, y=520 - 60 * (k % 2), r=70, col=col))
     # finale: rainbow storm
     for k in range(260):
         ts = T_FIN + rng.uniform(-0.2, 16)
@@ -456,8 +457,6 @@ def render(t):
         fr.alpha_composite(big, (int(x - ys.width / 2), int(yb - ys.height)))
     else:
         fr.alpha_composite(ys, (int(x - ys.width / 2), int(yb - ys.height)))
-    wa = rot + 8 * math.sin(math.pi * t / BEAT)
-    put(fr, G['wand'].rotate(wa, Image.BICUBIC, expand=True), hand[0] + 45, hand[1] - 90)
 
     # ---------------- text layers
     if t < 8.2:
