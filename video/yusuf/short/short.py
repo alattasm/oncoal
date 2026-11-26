@@ -40,6 +40,21 @@ if os.environ.get('SHORT_CFG') == 'bubbles':        # Bubble colour song (Eleven
         (38.8, 'Baby Yuyu, one, two, three!'), (41.8, 'Yay! Bye bye!'), (46.0, ''),
     ]
     SUBTITLE, BG_MODE, AUDIO, OUT = 'Bubble Song', 'bubbles', 'mix_bubbles.wav', 'baby_yuyu_bubble_short.mp4'
+if os.environ.get('SHORT_CFG') == 'bubbles2':       # bird-sweater bubble video, 30 s song (Eleven Music take 2 timings) + SFX
+    RED_, BLUE_, YEL_, GRN_ = (238, 48, 62), (38, 140, 245), (255, 208, 30), (58, 196, 78)
+    LYR = [
+        (0.0, "Hello, hello, I'm Baby Yuyu!"), (2.8, "I've got magic bubbles for you!"),
+        (4.9, 'Big ones, small ones, floating high'), (7.0, 'Colorful bubbles in the sky!'),
+        (9.1, 'Red, red, apples on the tree', {'big': 'RED', 'col': RED_}),
+        (11.3, 'Blue, blue, look up with me!', {'big': 'BLUE', 'col': BLUE_}),
+        (13.5, 'Yellow, yellow, sunshine bright', {'big': 'YELLOW', 'col': YEL_}),
+        (15.7, 'Green, green, what a lovely sight!', {'big': 'GREEN', 'col': GRN_}),
+        (17.7, 'Watch the magic bubbles go...'),
+        (20.0, "Pop, pop, pop! Let's sing along!", {'big': 'POP!', 'col': None}),
+        (22.2, 'Colors make a happy song!'), (24.4, 'Clap your hands and dance with me'),
+        (26.5, 'Baby Yuyu, one, two, three!'), (28.6, 'Yay!'), (31.0, ''),
+    ]
+    SUBTITLE, BG_MODE, AUDIO, OUT = 'Bubble Song', 'bubbles', 'mix_bubbles2.wav', 'baby_yuyu_bubble2_short.mp4'
 DUR_END = float(os.environ.get('SHORT_DUR', '30.4'))
 VID_Y = 560                                # top of framed video
 VW, VH = 1040, int(1040 * SH / SW)
