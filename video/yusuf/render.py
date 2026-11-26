@@ -274,15 +274,14 @@ def yusuf_pose(t):
 def wand_tip(t, sc, ys):
     """Ring centre in frame coords (wand is held in Yusuf's raised hand, image-right)."""
     x, yb, rot = yusuf_pose(t)
-    rc = json.load(open(os.path.join(HERE, 'yusuf_hands.json')))['ring']
-    hx, hy = rc[0] * sc, rc[1] * sc                   # wand ring (baked into sprite), scaled sprite coords
+    hx, hy = 770 * sc, 450 * sc                       # hand in scaled sprite coords
     w_im, h_im = ys.width, ys.height
     # offset from sprite centre, rotated about bottom-centre pivot
     px, py = hx - w_im / 2, hy - h_im
     a = math.radians(rot)
     rx = px * math.cos(a) + py * math.sin(a); ry = -px * math.sin(a) + py * math.cos(a)
     hand = (x + rx, yb + ry)
-    return hand, hand
+    return hand, (hand[0] + 95, hand[1] - 185)
 
 
 def section_of(t):
@@ -457,6 +456,8 @@ def render(t):
         fr.alpha_composite(big, (int(x - ys.width / 2), int(yb - ys.height)))
     else:
         fr.alpha_composite(ys, (int(x - ys.width / 2), int(yb - ys.height)))
+    wa = rot + 8 * math.sin(math.pi * t / BEAT)
+    put(fr, G['wand'].rotate(wa, Image.BICUBIC, expand=True), hand[0] + 45, hand[1] - 90)
 
     # ---------------- text layers
     if t < 8.2:
