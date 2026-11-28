@@ -1,0 +1,11 @@
+{"model_id":"music_v1","composition_plan":{
+"positive_global_styles":["Yemeni traditional folk song","festive Sanaani wedding style","male group chorus singing in Arabic, Yemeni dialect","oud, mirwas hand drum, darbuka, hand claps","92 BPM","joyful, celebratory, warm"],
+"negative_global_styles":["western pop","EDM","rap","female solo","English lyrics"],
+"sections":[
+{"section_name":"Intro","positive_local_styles":["oud solo intro","mirwas drum enters","no vocals"],"negative_local_styles":["vocals"],"duration_ms":5200,"lines":[]},
+{"section_name":"Verse 1","positive_local_styles":["lead male singer with chorus answering","claps on beat"],"negative_local_styles":[],"duration_ms":7800,"lines":["بعدوو بعدوو","بعدوو من طريقنا","هذا اونكول هذا اونكول"]},
+{"section_name":"Verse 2","positive_local_styles":["call and response, chorus repeats line"],"negative_local_styles":[],"duration_ms":7800,"lines":["احلى مندي عندنا","افضل لحوم لحومنا","افضل لحوم لحومنا"]},
+{"section_name":"Verse 3","positive_local_styles":["call and response, energy rising"],"negative_local_styles":[],"duration_ms":10400,"lines":["ماحد ينافس طبخنا","ماحد ينافس طبخنا","وكل الزباين اهلنا","وكل الزباين اهلنا"]},
+{"section_name":"Final chorus","positive_local_styles":["full chorus, big and festive","slight ritardando on the last line"],"negative_local_styles":[],"duration_ms":9800,"lines":["مرحبا بكم لعندنا","مرحبا بكم لعندنا","هذا اونكول هذا اونكول","بعدوو عن طريقنا"]},
+{"section_name":"Outro","positive_local_styles":["final mirwas hit","zaghrouta ululation","no lyrics"],"negative_local_styles":[],"duration_ms":3000,"lines":[]}
+]}}
